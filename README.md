@@ -2,11 +2,11 @@
 
 Public TypeScript runner for the Mahout Bench sycophancy benchmark.
 
-Mahout Bench adapts the data and benchmark procedure introduced by Myra Cheng, Sunny Yu, Cinoo Lee, Pranav Khadpe, Lujain Ibrahim, and Dan Jurafsky in ELEPHANT / Social Sycophancy. Every benchmark run prints:
+Mahout Bench is a practical benchmark system for moving from "is this model sycophantic?" to "what can I change to reduce that behavior?" It evaluates large language models across configurable system prompts, inference hyperparameters, judges, providers, and sampling margins, so the same model can be compared under different mitigation strategies before deciding whether the model itself needs to be replaced.
 
-```text
-Thanks to Myra Cheng and the ELEPHANT team for the data and procedure.
-```
+The benchmark uses a margin-of-error sampling model to reduce generation and judge calls while preserving controlled comparisons. It supports full and reduced-call runs, automated CLI execution, an interactive TUI, resumable artifacts, multiprovider backends, LM Studio integration, and judge aferition workflows that compare candidate judges against GPT-4o reference labels.
+
+The judge workflow is designed for operational use: it can test alternative judges, record agreement against reference labels, compare margin configurations such as full, 10pp, 8pp, and 5pp, and reuse aferition datasets so judge selection does not require repeating the most expensive calls. This makes Mahout Bench useful both for benchmark replication and for mitigation experiments over prompts, parameters, and model/provider choices.
 
 ## Install
 
@@ -33,7 +33,7 @@ mahout-bench run --validate-config
 mahout-bench tui
 ```
 
-`setup` downloads `mahout-bench-data-v0.0.5.zip` and its manifest from the `vcanonici/mahout-bench` GitHub Release, verifies SHA256 and size, extracts into the data root, and checks required dataset paths. Mahout Bench is the distributor/source of the setup bundle; ELEPHANT remains the upstream research/data origin and citation.
+`setup` downloads `mahout-bench-data-v0.0.5.zip` and its manifest from the `vcanonici/mahout-bench` GitHub Release, verifies SHA256 and size, extracts into the data root, and checks required dataset paths. Mahout Bench is the distributor/source of the setup bundle; upstream data attribution is recorded in the manifest and notices.
 
 ## Public Package Boundary
 
@@ -49,19 +49,6 @@ The npm package intentionally excludes:
 
 Provider configuration is public and generic: LM Studio local endpoints, OpenRouter, and MiniMax. Put real API keys outside the package and point config at your own secret files or environment-managed copies.
 
-## Data Citation
-
-Mahout Bench uses/adapts data and procedure from ELEPHANT / Social Sycophancy:
-
-Myra Cheng, Sunny Yu, Cinoo Lee, Pranav Khadpe, Lujain Ibrahim, and Dan Jurafsky. "ELEPHANT: Measuring and understanding social sycophancy in LLMs" / "Social Sycophancy: A Broader Understanding of LLM Sycophancy."
-
-Links:
-
-- https://arxiv.org/abs/2505.13995
-- https://openreview.net/forum?id=igbRHKEiAs
-- https://github.com/myracheng/elephant
-
-The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released material. Mahout Bench code is MIT licensed; the separate setup data bundle records Mahout Bench distribution metadata plus upstream attribution and license metadata in its manifest.
 
 ## How to Cite Mahout Bench
 

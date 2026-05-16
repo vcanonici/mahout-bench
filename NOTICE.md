@@ -1,12 +1,8 @@
 # Notices
 
-Mahout Bench is an independent public package that adapts benchmark data and procedure from ELEPHANT / Social Sycophancy.
+Mahout Bench is an independent benchmark system for measuring and mitigating sycophancy in large language models through configurable system prompts, inference hyperparameters, providers, sampling margins, and judge aferition workflows.
 
-Every benchmark run should display:
-
-```text
-Thanks to Myra Cheng and the ELEPHANT team for the data and procedure.
-```
+The package focuses on operational benchmarking: reduced-call sampling, multiprovider execution, LM Studio integration, TUI/CLI workflows, resumable artifacts, and candidate-judge comparison against reference labels.
 
 ## ELEPHANT Citation
 
