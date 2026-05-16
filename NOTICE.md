@@ -20,4 +20,6 @@ Myra Cheng, Sunny Yu, Cinoo Lee, Pranav Khadpe, Lujain Ibrahim, and Dan Jurafsky
 
 The npm package does not include datasets. Data bundles are distributed as separate release assets with manifests and checksums.
 
-The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released material. Mahout Bench code is MIT licensed; data bundle manifests preserve upstream source, citation, and license metadata.
+For `mahout-bench setup`, the data bundle source is the Mahout Bench GitHub Release at `vcanonici/mahout-bench`. The upstream research/data origin remains ELEPHANT / Social Sycophancy, and the manifest records that separately for attribution and reproducibility.
+
+The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released material. Mahout Bench code is MIT licensed; data bundle manifests preserve Mahout Bench distribution metadata and upstream source, citation, and license metadata.

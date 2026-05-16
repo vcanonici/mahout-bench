@@ -55,6 +55,12 @@ export interface SetupDataManifest {
     url: string;
     license?: string;
   };
+  upstream?: {
+    name: string;
+    citation: string;
+    url: string;
+    license?: string;
+  };
 }
 
 interface SetupArgs {
@@ -87,6 +93,9 @@ export async function setup(argv = process.argv.slice(2)): Promise<number> {
   writeJson(localManifest, manifest);
   process.stdout.write(`Mahout Bench data installed at ${args.dataRoot}\n`);
   process.stdout.write(`Source: ${manifest.source.citation}\n`);
+  if (manifest.upstream) {
+    process.stdout.write(`Upstream: ${manifest.upstream.citation}\n`);
+  }
   return 0;
 }
 

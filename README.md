@@ -33,7 +33,7 @@ mahout-bench run --validate-config
 mahout-bench tui
 ```
 
-`setup` downloads `mahout-bench-data-v0.0.5.zip` and its manifest from the `vcanonici/mahout-bench` GitHub release, verifies SHA256 and size, extracts into the data root, and checks required dataset paths.
+`setup` downloads `mahout-bench-data-v0.0.5.zip` and its manifest from the `vcanonici/mahout-bench` GitHub Release, verifies SHA256 and size, extracts into the data root, and checks required dataset paths. Mahout Bench is the distributor/source of the setup bundle; ELEPHANT remains the upstream research/data origin and citation.
 
 ## Public Package Boundary
 
@@ -61,4 +61,4 @@ Links:
 - https://openreview.net/forum?id=igbRHKEiAs
 - https://github.com/myracheng/elephant
 
-The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released material. Mahout Bench code is MIT licensed; the separate setup data bundle preserves upstream attribution and records source/license metadata in its manifest.
+The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released material. Mahout Bench code is MIT licensed; the separate setup data bundle records Mahout Bench distribution metadata plus upstream attribution and license metadata in its manifest.

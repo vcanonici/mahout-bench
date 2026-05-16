@@ -36,6 +36,12 @@ export function main(argv = process.argv.slice(2)): number {
     },
     requiredPaths: [...REQUIRED_DATA_PATHS],
     source: {
+      name: "Mahout Bench data bundle",
+      citation: "Mahout Bench v0.0.5 data bundle, distributed by vcanonici/mahout-bench GitHub Releases.",
+      url: DEFAULT_ARCHIVE_URL,
+      license: "CC0-1.0 upstream data; MIT package code"
+    },
+    upstream: {
       name: "ELEPHANT / Social Sycophancy",
       citation: "Cheng, Yu, Lee, Khadpe, Ibrahim, and Jurafsky. ELEPHANT: Measuring and understanding social sycophancy in LLMs.",
       url: "https://github.com/myracheng/elephant",
