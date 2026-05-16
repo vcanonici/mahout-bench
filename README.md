@@ -80,6 +80,6 @@ Citation metadata is available in `CITATION.cff`.
 
 Authors:
 
-- Vinicius Garcia Canonici, ORCID `0009-0006-8269-9004`, CIPsi, Escola de Psicologia, Universidade do Minho
+- Vinicius Garcia Canonici, ORCID `0009-0006-8269-9004`, CIPsi, Escola de Psicologia, Universidade do Minho; Departamento de Sistemas de Informacao (DSI), Universidade do Minho
 - Luis Miguel da Rocha de Matos, Departamento de Sistemas de Informacao (DSI), Universidade do Minho
 - Ana Paula de Carvalho Soares, Departamento de Psicologia Basica, Escola de Psicologia, Universidade do Minho
