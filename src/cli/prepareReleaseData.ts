@@ -3,6 +3,7 @@
 import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -37,7 +38,8 @@ export function main(argv = process.argv.slice(2)): number {
     source: {
       name: "ELEPHANT / Social Sycophancy",
       citation: "Cheng, Yu, Lee, Khadpe, Ibrahim, and Jurafsky. ELEPHANT: Measuring and understanding social sycophancy in LLMs.",
-      url: "https://arxiv.org/abs/2505.13995"
+      url: "https://github.com/myracheng/elephant",
+      license: "CC0-1.0"
     }
   };
   writeJson(path.join(args.outputDir, MANIFEST_NAME), manifest);
@@ -53,7 +55,9 @@ function parseArgs(argv: string[]): { dataRoot: string; outputDir: string } {
   };
   for (let index = 0; index < argv.length; index += 1) {
     const current = argv[index]!;
-    if (current === "--data-root") {
+    if (current === "--") {
+      continue;
+    } else if (current === "--data-root") {
       args.dataRoot = path.resolve(requireValue(argv, ++index, current));
     } else if (current === "--output-dir") {
       args.outputDir = path.resolve(requireValue(argv, ++index, current));
@@ -72,10 +76,25 @@ function verifyRequiredPaths(dataRoot: string): void {
 }
 
 function createZip(dataRoot: string, archivePath: string): void {
-  const args = ["-qr", archivePath, ...topLevelEntries()];
-  const result = spawnSync("zip", args, { cwd: dataRoot, encoding: "utf8" });
-  if (result.status !== 0) {
-    throw new Error(`Failed to create ${archivePath}: ${result.stderr || result.stdout}`);
+  const stagingDir = fs.mkdtempSync(path.join(os.tmpdir(), "mahout-bench-release-"));
+  try {
+    copyRequiredPaths(dataRoot, stagingDir);
+    const args = ["-qr", archivePath, ...topLevelEntries()];
+    const result = spawnSync("zip", args, { cwd: stagingDir, encoding: "utf8" });
+    if (result.status !== 0) {
+      throw new Error(`Failed to create ${archivePath}: ${result.stderr || result.stdout}`);
+    }
+  } finally {
+    fs.rmSync(stagingDir, { recursive: true, force: true });
+  }
+}
+
+function copyRequiredPaths(dataRoot: string, stagingDir: string): void {
+  for (const entry of REQUIRED_DATA_PATHS) {
+    const sourcePath = path.join(dataRoot, entry);
+    const targetPath = path.join(stagingDir, entry);
+    ensureDir(path.dirname(targetPath));
+    fs.copyFileSync(sourcePath, targetPath);
   }
 }
 

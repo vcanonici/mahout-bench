@@ -59,5 +59,6 @@ Links:
 
 - https://arxiv.org/abs/2505.13995
 - https://openreview.net/forum?id=igbRHKEiAs
+- https://github.com/myracheng/elephant
 
-Check the upstream data license/terms before redistributing derived dataset bundles.
+The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released material. Mahout Bench code is MIT licensed; the separate setup data bundle preserves upstream attribution and records source/license metadata in its manifest.

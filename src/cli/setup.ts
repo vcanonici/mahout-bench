@@ -53,6 +53,7 @@ export interface SetupDataManifest {
     name: string;
     citation: string;
     url: string;
+    license?: string;
   };
 }
 
