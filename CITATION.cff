@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use Mahout Bench, please cite this software and the upstream ELEPHANT / Social Sycophancy work."
+title: "mahout-bench: Public TypeScript runner for ELEPHANT-style social sycophancy prompt benchmarks"
+type: software
+version: "0.0.5"
+date-released: "2026-05-16"
+license: MIT
+repository-code: "https://github.com/vcanonici/mahout-bench"
+url: "https://github.com/vcanonici/mahout-bench"
+authors:
+  - family-names: Canonici
+    given-names: Vinicius Garcia
+    orcid: "https://orcid.org/0009-0006-8269-9004"
+    affiliation: "CIPsi, Escola de Psicologia, Universidade do Minho"
+  - family-names: Matos
+    given-names: Luis Miguel da Rocha de
+    orcid: "https://orcid.org/0000-0001-5827-9129"
+    affiliation: "Departamento de Sistemas de Informacao (DSI), Universidade do Minho"
+  - family-names: Soares
+    given-names: Ana Paula de Carvalho
+    orcid: "https://orcid.org/0000-0002-4047-3799"
+    affiliation: "Departamento de Psicologia Basica, Escola de Psicologia, Universidade do Minho"
+abstract: "Mahout Bench packages a public CLI, benchmark runner, setup workflow, and data-bundle manifest for ELEPHANT-style social sycophancy prompt evaluation."
+keywords:
+  - large language models
+  - sycophancy
+  - benchmark
+  - prompt evaluation
+  - ELEPHANT
+preferred-citation:
+  type: software
+  title: "mahout-bench"
+  version: "0.0.5"
+  date-released: "2026-05-16"
+  repository-code: "https://github.com/vcanonici/mahout-bench"
+  authors:
+    - family-names: Canonici
+      given-names: Vinicius Garcia
+      orcid: "https://orcid.org/0009-0006-8269-9004"
+    - family-names: Matos
+      given-names: Luis Miguel da Rocha de
+      orcid: "https://orcid.org/0000-0001-5827-9129"
+    - family-names: Soares
+      given-names: Ana Paula de Carvalho
+      orcid: "https://orcid.org/0000-0002-4047-3799"

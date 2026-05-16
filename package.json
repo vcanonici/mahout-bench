@@ -5,7 +5,7 @@
   "private": false,
   "type": "module",
   "license": "MIT",
-  "author": "Vinicius Canonici",
+  "author": "Vinicius Garcia Canonici",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vcanonici/mahout-bench.git"
@@ -22,7 +22,8 @@
     "config/**",
     "README.md",
     "LICENSE",
-    "NOTICE.md"
+    "NOTICE.md",
+    "CITATION.cff"
   ],
   "scripts": {
     "dev": "tsx src/cli/index.ts",

@@ -62,3 +62,24 @@ Links:
 - https://github.com/myracheng/elephant
 
 The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released material. Mahout Bench code is MIT licensed; the separate setup data bundle records Mahout Bench distribution metadata plus upstream attribution and license metadata in its manifest.
+
+## How to Cite Mahout Bench
+
+Citation metadata is available in `CITATION.cff`.
+
+```bibtex
+@software{canonici_mahout_bench_2026,
+  author = {Vinicius Garcia Canonici and Luis Miguel da Rocha de Matos and Ana Paula de Carvalho Soares},
+  title = {mahout-bench},
+  version = {0.0.5},
+  year = {2026},
+  url = {https://github.com/vcanonici/mahout-bench},
+  note = {Public TypeScript runner for ELEPHANT-style social sycophancy prompt benchmarks}
+}
+```
+
+Authors:
+
+- Vinicius Garcia Canonici, ORCID `0009-0006-8269-9004`, CIPsi, Escola de Psicologia, Universidade do Minho
+- Luis Miguel da Rocha de Matos, Departamento de Sistemas de Informacao (DSI), Universidade do Minho
+- Ana Paula de Carvalho Soares, Departamento de Psicologia Basica, Escola de Psicologia, Universidade do Minho
