@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use Mahout Bench, please cite this software and the upstream ELEPHANT / Social Sycophancy work."
-title: "mahout-bench: Public TypeScript runner for ELEPHANT-style social sycophancy prompt benchmarks"
+title: "Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models"
 type: software
 version: "0.0.5"
 date-released: "2026-05-16"
@@ -29,7 +29,7 @@ keywords:
   - ELEPHANT
 preferred-citation:
   type: software
-  title: "mahout-bench"
+  title: "Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models"
   version: "0.0.5"
   date-released: "2026-05-16"
   repository-code: "https://github.com/vcanonici/mahout-bench"

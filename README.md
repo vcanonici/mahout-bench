@@ -70,7 +70,7 @@ Citation metadata is available in `CITATION.cff`.
 ```bibtex
 @software{canonici_mahout_bench_2026,
   author = {Vinicius Garcia Canonici and Luis Miguel da Rocha de Matos and Ana Paula de Carvalho Soares},
-  title = {mahout-bench},
+  title = {Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models},
   version = {0.0.5},
   year = {2026},
   url = {https://github.com/vcanonici/mahout-bench},

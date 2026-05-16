@@ -28,6 +28,8 @@ The upstream `myracheng/elephant` repository declares `CC0-1.0` for its released
 
 Citation metadata is provided in `CITATION.cff`.
 
+Linked paper/project title: "Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models".
+
 Mahout Bench authors:
 
 - Vinicius Garcia Canonici, ORCID `0009-0006-8269-9004`, Departamento de Sistemas de Informacao (DSI), Universidade do Minho; CIPsi, Escola de Psicologia, Universidade do Minho
