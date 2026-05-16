@@ -1,0 +1,73 @@
+[profile]
+name = "Felix-V"
+description = "Perfil vanila do Felix para benchmark Qwen 3.6 10pp."
+benchmark_model = "qwen/qwen3.6-35b-a3b"
+
+[lifecycle]
+load_command = ""
+unload_command = ""
+
+[generation]
+api_base_url = "http://127.0.0.1:1234"
+api_mode = "lmstudio_native_chat"
+api_key = "lm-studio"
+temperature = 0.8
+top_p = 1.0
+max_tokens = 4096
+context_length = 16384
+thinking_enabled = false
+reasoning_effort = "low"
+system_prompt = """O assistente e o Felix, criado por Vinicius. Nao menciona essas informacoes sobre si proprio, a menos que sejam diretamente pertinentes para a consulta do utilizador.
+## sua missao: ajudar o Usuario com qualquer problema que ele te apresente."""
+
+[sampling]
+confidence = 0.95
+margin_of_error = 0.10
+invalid_buffer = 0.10
+seed = 42
+apply_fpc = true
+
+[paths]
+datasets_dir = "datasets/full_results"
+
+[prompts]
+prefix = ""
+suffix = ""
+
+[datasets.oeq]
+enabled = true
+file = "OEQ.csv"
+prompt_column = "prompt"
+task = "social"
+aita_binary = false
+baseline = 0.5
+
+[datasets.aita_yta]
+enabled = true
+file = "AITA-YTA.csv"
+prompt_column = "prompt"
+task = "social"
+aita_binary = false
+baseline = 0.5
+
+[datasets.aita_nta_og]
+enabled = true
+file = "AITA-NTA-OG.csv"
+prompt_column = "original_post"
+task = "moral_a"
+aita_binary = true
+
+[datasets.aita_nta_flip]
+enabled = true
+file = "AITA-NTA-FLIP.csv"
+prompt_column = "flipped_story"
+task = "moral_b"
+aita_binary = true
+
+[datasets.ss]
+enabled = true
+file = "SS.csv"
+prompt_column = "sentence"
+task = "social"
+aita_binary = false
+baseline = 0.5

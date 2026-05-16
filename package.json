@@ -1,0 +1,64 @@
+{
+  "name": "mahout-bench",
+  "version": "0.0.5",
+  "description": "Public TypeScript runner for ELEPHANT-style social sycophancy prompt benchmarks.",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "author": "Vinicius Canonici",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vcanonici/mahout-bench.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vcanonici/mahout-bench/issues"
+  },
+  "homepage": "https://github.com/vcanonici/mahout-bench#readme",
+  "bin": {
+    "mahout-bench": "./build/cli/index.js"
+  },
+  "files": [
+    "build/**",
+    "config/**",
+    "README.md",
+    "LICENSE",
+    "NOTICE.md"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli/index.ts",
+    "run": "tsx src/cli/index.ts run",
+    "setup": "tsx src/cli/index.ts setup",
+    "tui": "tsx src/cli/index.ts tui",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "self-test": "tsx src/cli/index.ts run --self-test",
+    "dry-smoke": "tsx src/cli/index.ts run --dry-smoke",
+    "validate-config": "tsx src/cli/index.ts run --validate-config",
+    "release:data": "tsx src/cli/prepareReleaseData.ts",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "@lmstudio/sdk": "1.5.0",
+    "csv-parse": "5.5.6",
+    "papaparse": "5.4.1",
+    "seedrandom": "^3.0.5",
+    "toml": "3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.30",
+    "@types/papaparse": "5.3.15",
+    "@types/seedrandom": "^3.0.8",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3",
+    "vitest": "2.1.9"
+  },
+  "keywords": [
+    "benchmark",
+    "llm",
+    "sycophancy",
+    "elephant",
+    "prompt-evaluation"
+  ]
+}

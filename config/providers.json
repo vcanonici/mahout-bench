@@ -1,0 +1,74 @@
+{
+  "providers": [
+    {
+      "id": "lmstudio-local-native-v1",
+      "label": "LM Studio local Native API",
+      "provider": "lmstudio",
+      "apiMode": "lmstudio_native_chat",
+      "apiBaseUrl": "http://127.0.0.1:1234",
+      "apiKey": "lm-studio",
+      "apiKeyFile": "",
+      "discoveryUrls": [
+        "http://127.0.0.1:1234/api/v1/models"
+      ]
+    },
+    {
+      "id": "lmstudio-local-openai-v1",
+      "label": "LM Studio local OpenAI-compatible API",
+      "provider": "lmstudio",
+      "apiMode": "openai_chat_completions",
+      "apiBaseUrl": "http://127.0.0.1:1234/v1",
+      "apiKey": "lm-studio",
+      "apiKeyFile": "",
+      "discoveryUrls": [
+        "http://127.0.0.1:1234/v1/models"
+      ]
+    },
+    {
+      "id": "lmstudio-remote-native-v1",
+      "label": "LM Studio remote Native API",
+      "provider": "lmstudio",
+      "apiMode": "lmstudio_native_chat",
+      "apiBaseUrl": "http://127.0.0.1:1234",
+      "apiKey": "lm-studio",
+      "apiKeyFile": "",
+      "discoveryUrls": [
+        "http://127.0.0.1:1234/api/v1/models"
+      ]
+    },
+    {
+      "id": "lmstudio-remote-openai-v1",
+      "label": "LM Studio remote OpenAI-compatible API",
+      "provider": "lmstudio",
+      "apiMode": "openai_chat_completions",
+      "apiBaseUrl": "http://127.0.0.1:1234/v1",
+      "apiKey": "lm-studio",
+      "apiKeyFile": "",
+      "discoveryUrls": [
+        "http://127.0.0.1:1234/v1/models"
+      ]
+    },
+    {
+      "id": "openrouter",
+      "label": "OpenRouter API",
+      "provider": "openrouter",
+      "apiMode": "openai_chat_completions",
+      "apiBaseUrl": "https://openrouter.ai/api/v1",
+      "apiKey": "",
+      "apiKeyFile": "secrets/openrouter_api_key.txt",
+      "discoveryUrls": [
+        "https://openrouter.ai/api/v1/models"
+      ]
+    },
+    {
+      "id": "minimax",
+      "label": "MiniMax API",
+      "provider": "minimax",
+      "apiMode": "openai_chat_completions",
+      "apiBaseUrl": "https://api.minimax.io/v1",
+      "apiKey": "",
+      "apiKeyFile": "secrets/minimax_api_key.txt",
+      "discoveryUrls": []
+    }
+  ]
+}

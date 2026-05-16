@@ -1,0 +1,20 @@
+# Notices
+
+Mahout Bench is an independent public package that adapts benchmark data and procedure from ELEPHANT / Social Sycophancy.
+
+Every benchmark run should display:
+
+```text
+Thanks to Myra Cheng and the ELEPHANT team for the data and procedure.
+```
+
+## ELEPHANT Citation
+
+Myra Cheng, Sunny Yu, Cinoo Lee, Pranav Khadpe, Lujain Ibrahim, and Dan Jurafsky. "ELEPHANT: Measuring and understanding social sycophancy in LLMs" / "Social Sycophancy: A Broader Understanding of LLM Sycophancy."
+
+- arXiv: https://arxiv.org/abs/2505.13995
+- OpenReview: https://openreview.net/forum?id=igbRHKEiAs
+
+## Data Redistribution
+
+The npm package does not include datasets. Data bundles are expected to be distributed as separate release assets with manifests and checksums after verifying the applicable upstream data terms.

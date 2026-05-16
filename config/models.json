@@ -1,0 +1,759 @@
+{
+  "models": [
+    {
+      "id": "lmstudio_native_gemma4_26b_a4b",
+      "label": "Gemma 4 26B A4B (LM Studio remote native)",
+      "model": "google/gemma-4-26b-a4b",
+      "providerId": "lmstudio-remote-native-v1",
+      "role": "judge",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "lmstudio-gemma4-26b-a4b",
+        "google/gemma-4-26b-a4b",
+        "gemma26",
+        "gemma26-native"
+      ],
+      "capabilities": {
+        "nativeChat": true,
+        "textBinaryJudge": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio_openai_gemma4_26b_a4b",
+      "label": "Gemma 4 26B A4B (LM Studio remote OpenAI-compatible)",
+      "model": "google/gemma-4-26b-a4b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "judge",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "gemma26-openai"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "jsonSchemaBinaryJudge": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio_native_liquid_lfm25_12b",
+      "label": "Liquid LFM2.5 1.2B (LM Studio local native)",
+      "model": "liquid/lfm2.5-1.2b",
+      "providerId": "lmstudio-local-native-v1",
+      "role": "judge",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "liquid-native",
+        "liquid/lfm2.5-1.2b-native"
+      ],
+      "capabilities": {
+        "nativeChat": true,
+        "textBinaryJudge": true,
+        "reasoningParameter": false
+      }
+    },
+    {
+      "id": "lmstudio_openai_liquid_lfm25_12b",
+      "label": "Liquid LFM2.5 1.2B (LM Studio local OpenAI-compatible)",
+      "model": "liquid/lfm2.5-1.2b",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "judge",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "liquid-openai",
+        "liquid/lfm2.5-1.2b-openai"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "jsonSchemaBinaryJudge": true,
+        "reasoningParameter": false
+      }
+    },
+    {
+      "id": "lmstudio-liquid-lfm25-12b",
+      "label": "Liquid LFM2.5 1.2B (legacy alias, LM Studio local native)",
+      "model": "liquid/lfm2.5-1.2b",
+      "providerId": "lmstudio-local-native-v1",
+      "role": "judge",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "liquid/lfm2.5-1.2b",
+        "liquid-lfm25-12b"
+      ],
+      "capabilities": {
+        "nativeChat": true,
+        "textBinaryJudge": true,
+        "reasoningParameter": false,
+        "legacyId": true
+      }
+    },
+    {
+      "id": "lmstudio_native_qwen36_35b_a3b",
+      "label": "Qwen 3.6 35B A3B (LM Studio remote native)",
+      "model": "qwen/qwen3.6-35b-a3b",
+      "providerId": "lmstudio-remote-native-v1",
+      "role": "generation",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "lmstudio-qwen36-35b-a3b",
+        "qwen/qwen3.6-35b-a3b",
+        "qwen36",
+        "qwen36-native"
+      ],
+      "capabilities": {
+        "nativeChat": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio_openai_qwen36_35b_a3b",
+      "label": "Qwen 3.6 35B A3B (LM Studio remote OpenAI-compatible)",
+      "model": "qwen/qwen3.6-35b-a3b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "generation",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen36-openai"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio_native_glm47_flash",
+      "label": "GLM 4.7 Flash (LM Studio remote native)",
+      "model": "zai-org/glm-4.7-flash",
+      "providerId": "lmstudio-remote-native-v1",
+      "role": "generation",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "lmstudio-glm47-flash",
+        "zai-org/glm-4.7-flash",
+        "glm47flash",
+        "glm47flash-native"
+      ],
+      "capabilities": {
+        "nativeChat": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio_openai_glm47_flash",
+      "label": "GLM 4.7 Flash (LM Studio remote OpenAI-compatible)",
+      "model": "zai-org/glm-4.7-flash",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "generation",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "glm47flash-openai"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "openrouter_glm47_flash",
+      "label": "GLM 4.7 Flash (OpenRouter)",
+      "model": "z-ai/glm-4.7-flash",
+      "providerId": "openrouter",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 202752,
+      "aliases": [
+        "z-ai/glm-4.7-flash",
+        "openrouter-glm47-flash",
+        "glm47flash-openrouter"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "minimax-m27",
+      "label": "MiniMax M2.7",
+      "model": "MiniMax-M2.7",
+      "providerId": "minimax",
+      "role": "generation",
+      "parallelism": 1,
+      "aliases": [
+        "MiniMax-M2.7",
+        "minimax-m2.7"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true
+      }
+    },
+    {
+      "id": "lmstudio-local-openai-v1-googlegemma-4-26b-a4b",
+      "label": "google/gemma-4-26b-a4b (LM Studio local OpenAI-compatible API)",
+      "model": "google/gemma-4-26b-a4b",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "google/gemma-4-26b-a4b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-local-openai-v1-zai-orgglm-46v-flash",
+      "label": "zai-org/glm-4.6v-flash (LM Studio local OpenAI-compatible API)",
+      "model": "zai-org/glm-4.6v-flash",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "zai-org/glm-4.6v-flash"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-local-openai-v1-googlegemma-4-e4b",
+      "label": "google/gemma-4-e4b (LM Studio local OpenAI-compatible API)",
+      "model": "google/gemma-4-e4b",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "google/gemma-4-e4b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-local-openai-v1-googlegemma-4-31b",
+      "label": "google/gemma-4-31b (LM Studio local OpenAI-compatible API)",
+      "model": "google/gemma-4-31b",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "google/gemma-4-31b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-local-openai-v1-zai-orgglm-47-flash",
+      "label": "zai-org/glm-4.7-flash (LM Studio local OpenAI-compatible API)",
+      "model": "zai-org/glm-4.7-flash",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "zai-org/glm-4.7-flash"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-local-openai-v1-qwenqwen35-9b",
+      "label": "qwen/qwen3.5-9b (LM Studio local OpenAI-compatible API)",
+      "model": "qwen/qwen3.5-9b",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen/qwen3.5-9b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-local-openai-v1-text-embedding-nomic-embed-text-v15",
+      "label": "text-embedding-nomic-embed-text-v1.5 (LM Studio local OpenAI-compatible API)",
+      "model": "text-embedding-nomic-embed-text-v1.5",
+      "providerId": "lmstudio-local-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-nomic-embed-text-v1.5"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-nvidianemotron-3-nano-omni",
+      "label": "nvidia/nemotron-3-nano-omni (LM Studio remote OpenAI-compatible API)",
+      "model": "nvidia/nemotron-3-nano-omni",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "nvidia/nemotron-3-nano-omni"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-liquidlfm25-12b",
+      "label": "liquid/lfm2.5-1.2b (LM Studio remote OpenAI-compatible API)",
+      "model": "liquid/lfm2.5-1.2b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "liquid/lfm2.5-1.2b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwenqwen36-27b",
+      "label": "qwen/qwen3.6-27b (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen/qwen3.6-27b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen/qwen3.6-27b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-googlegemma-4-e4b",
+      "label": "google/gemma-4-e4b (LM Studio remote OpenAI-compatible API)",
+      "model": "google/gemma-4-e4b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "google/gemma-4-e4b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-googlegemma-4-31b",
+      "label": "google/gemma-4-31b (LM Studio remote OpenAI-compatible API)",
+      "model": "google/gemma-4-31b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "google/gemma-4-31b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwen35-9b-nsfw-captioning-v2",
+      "label": "qwen3.5-9b-nsfw-captioning-v2 (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen3.5-9b-nsfw-captioning-v2",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen3.5-9b-nsfw-captioning-v2"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwen3-vl-8b-nsfw-caption-v45",
+      "label": "qwen3-vl-8b-nsfw-caption-v4.5 (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen3-vl-8b-nsfw-caption-v4.5",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen3-vl-8b-nsfw-caption-v4.5"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwenqwen35-9b",
+      "label": "qwen/qwen3.5-9b (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen/qwen3.5-9b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen/qwen3.5-9b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-embeddinggemma-300m",
+      "label": "text-embedding-embeddinggemma-300m (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-embeddinggemma-300m",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-embeddinggemma-300m"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-snowflake-arctic-embed-l-v20",
+      "label": "text-embedding-snowflake-arctic-embed-l-v2.0 (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-snowflake-arctic-embed-l-v2.0",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-snowflake-arctic-embed-l-v2.0"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-gte-qwen2-15b-instruct",
+      "label": "text-embedding-gte-qwen2-1.5b-instruct (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-gte-qwen2-1.5b-instruct",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-gte-qwen2-1.5b-instruct"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-multilingual-e5-large-instruct",
+      "label": "text-embedding-multilingual-e5-large-instruct (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-multilingual-e5-large-instruct",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-multilingual-e5-large-instruct"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-bge-m3",
+      "label": "text-embedding-bge-m3 (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-bge-m3",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-bge-m3"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-paraphrase-minilm-l3-v2",
+      "label": "text-embedding-paraphrase-minilm-l3-v2 (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-paraphrase-minilm-l3-v2",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-paraphrase-minilm-l3-v2"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-paraphrase-multilingual-minilm-l12-v2gguf",
+      "label": "text-embedding-paraphrase-multilingual-minilm-l12-v2.gguf (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-paraphrase-multilingual-minilm-l12-v2.gguf",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-paraphrase-multilingual-minilm-l12-v2.gguf"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-liquidlfm2-24b-a2b",
+      "label": "liquid/lfm2-24b-a2b (LM Studio remote OpenAI-compatible API)",
+      "model": "liquid/lfm2-24b-a2b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "liquid/lfm2-24b-a2b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwenqwen3-4b-2507",
+      "label": "qwen/qwen3-4b-2507 (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen/qwen3-4b-2507",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen/qwen3-4b-2507"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwen3-4b-instruct-2507-claude-opus-3-distill",
+      "label": "qwen3-4b-instruct-2507-claude-opus-3-distill (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen3-4b-instruct-2507-claude-opus-3-distill",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen3-4b-instruct-2507-claude-opus-3-distill"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-translategemma-12b-it",
+      "label": "translategemma-12b-it (LM Studio remote OpenAI-compatible API)",
+      "model": "translategemma-12b-it",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "translategemma-12b-it"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-translategemma-4b-it",
+      "label": "translategemma-4b-it (LM Studio remote OpenAI-compatible API)",
+      "model": "translategemma-4b-it",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "translategemma-4b-it"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-all-minilm-l6-v2-embedding",
+      "label": "text-embedding-all-minilm-l6-v2-embedding (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-all-minilm-l6-v2-embedding",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-all-minilm-l6-v2-embedding"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-hy-mt15-7b",
+      "label": "hy-mt1.5-7b (LM Studio remote OpenAI-compatible API)",
+      "model": "hy-mt1.5-7b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "hy-mt1.5-7b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-qwen3-embedding-06b",
+      "label": "text-embedding-qwen3-embedding-0.6b (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-qwen3-embedding-0.6b",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-qwen3-embedding-0.6b"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-zai-orgglm-46v-flash",
+      "label": "zai-org/glm-4.6v-flash (LM Studio remote OpenAI-compatible API)",
+      "model": "zai-org/glm-4.6v-flash",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "zai-org/glm-4.6v-flash"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-nvidianemotron-3-nano",
+      "label": "nvidia/nemotron-3-nano (LM Studio remote OpenAI-compatible API)",
+      "model": "nvidia/nemotron-3-nano",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "nvidia/nemotron-3-nano"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwen3-vl-8b-thinking",
+      "label": "qwen3-vl-8b-thinking (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen3-vl-8b-thinking",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen3-vl-8b-thinking"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-qwenqwen3-4b-thinking-2507",
+      "label": "qwen/qwen3-4b-thinking-2507 (LM Studio remote OpenAI-compatible API)",
+      "model": "qwen/qwen3-4b-thinking-2507",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "qwen/qwen3-4b-thinking-2507"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    },
+    {
+      "id": "lmstudio-remote-openai-v1-text-embedding-nomic-embed-text-v15",
+      "label": "text-embedding-nomic-embed-text-v1.5 (LM Studio remote OpenAI-compatible API)",
+      "model": "text-embedding-nomic-embed-text-v1.5",
+      "providerId": "lmstudio-remote-openai-v1",
+      "role": "both",
+      "parallelism": 1,
+      "contextLength": 128000,
+      "aliases": [
+        "text-embedding-nomic-embed-text-v1.5"
+      ],
+      "capabilities": {
+        "openAiChatCompletions": true,
+        "reasoningParameter": true
+      }
+    }
+  ]
+}
