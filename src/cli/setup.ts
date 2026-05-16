@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import zlib from "node:zlib";
 
 import {
   ELEPHANT_FULL_RESULTS_DIR,
@@ -186,10 +186,49 @@ function verifyArchive(archivePath: string, manifest: SetupDataManifest): void {
 }
 
 function extractZip(zipPath: string, dataRoot: string): void {
-  const result = spawnSync("unzip", ["-o", zipPath, "-d", dataRoot], { encoding: "utf8" });
-  if (result.status !== 0) {
-    throw new Error(`Failed to extract ${zipPath}: ${result.stderr || result.stdout}`);
+  const archive = fs.readFileSync(zipPath);
+  let offset = 0;
+  while (offset < archive.length) {
+    const signature = archive.readUInt32LE(offset);
+    if (signature !== 0x04034b50) {
+      break;
+    }
+    const method = archive.readUInt16LE(offset + 8);
+    const compressedSize = archive.readUInt32LE(offset + 18);
+    const fileNameLength = archive.readUInt16LE(offset + 26);
+    const extraLength = archive.readUInt16LE(offset + 28);
+    const fileNameStart = offset + 30;
+    const fileName = archive.subarray(fileNameStart, fileNameStart + fileNameLength).toString("utf8");
+    const dataStart = fileNameStart + fileNameLength + extraLength;
+    const dataEnd = dataStart + compressedSize;
+    extractZipEntry(archive.subarray(dataStart, dataEnd), method, fileName, dataRoot, zipPath);
+    offset = dataEnd;
   }
+}
+
+function extractZipEntry(payload: Buffer, method: number, fileName: string, dataRoot: string, zipPath: string): void {
+  if (!fileName || fileName.includes("..") || path.isAbsolute(fileName)) {
+    throw new Error(`Unsafe zip entry in ${zipPath}: ${fileName}`);
+  }
+  const destination = path.resolve(dataRoot, fileName);
+  const dataRootResolved = path.resolve(dataRoot);
+  if (!destination.startsWith(`${dataRootResolved}${path.sep}`) && destination !== dataRootResolved) {
+    throw new Error(`Zip entry escapes data root in ${zipPath}: ${fileName}`);
+  }
+  if (fileName.endsWith("/")) {
+    ensureDir(destination);
+    return;
+  }
+  ensureDir(path.dirname(destination));
+  if (method === 0) {
+    fs.writeFileSync(destination, payload);
+    return;
+  }
+  if (method === 8) {
+    fs.writeFileSync(destination, zlib.inflateRawSync(payload));
+    return;
+  }
+  throw new Error(`Unsupported zip compression method ${method} for ${fileName}`);
 }
 
 function verifyRequiredPaths(dataRoot: string, requiredPaths: string[]): void {
@@ -214,6 +253,7 @@ function printHelp(): void {
   process.stdout.write(`--manifest-url <url>   Override the release manifest URL.\n`);
   process.stdout.write(`--archive-url <url>    Override the release archive URL.\n`);
   process.stdout.write(`--force                Redownload and reinstall even when data is present.\n`);
+  process.stdout.write(`--bootstrap            When used through mahout-bench setup, run provider bootstrap after data setup.\n`);
 }
 
 if (path.resolve(process.argv[1] ?? "") === path.resolve(fileURLToPath(import.meta.url))) {

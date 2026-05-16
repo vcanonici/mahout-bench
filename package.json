@@ -1,6 +1,6 @@
 {
   "name": "mahout-bench",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "Public TypeScript runner for the Mahout Bench sycophancy benchmark.",
   "private": false,
   "type": "module",
@@ -15,11 +15,13 @@
   },
   "homepage": "https://github.com/vcanonici/mahout-bench#readme",
   "bin": {
-    "mahout-bench": "./build/cli/index.js"
+    "mahout-bench": "build/cli/index.js"
   },
   "files": [
     "build/**",
     "config/**",
+    "docs/**",
+    "AGENTS.md",
     "README.md",
     "LICENSE",
     "NOTICE.md",
@@ -28,6 +30,7 @@
   "scripts": {
     "dev": "tsx src/cli/index.ts",
     "run": "tsx src/cli/index.ts run",
+    "status": "tsx src/cli/index.ts status",
     "setup": "tsx src/cli/index.ts setup",
     "tui": "tsx src/cli/index.ts tui",
     "build": "tsc -p tsconfig.build.json",

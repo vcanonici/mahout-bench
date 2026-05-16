@@ -29,6 +29,7 @@ import { ensureDir, listFiles, localRunStamp, readCsvFile, readJsonFile } from "
 import { runBenchmark } from "../pipeline/benchmarkRunner.js";
 import { TerminalObserver } from "../runtime/terminalObserver.js";
 import { defaultPackageRoot, resolveOutputBase } from "../runtime/paths.js";
+import { bootstrap } from "./bootstrap.js";
 import { commonMoralIds, estimateCalls } from "../sampling/samplePlanner.js";
 import {
   ensureJudgeAfferitionStratifiedTestSet1000,
@@ -112,9 +113,14 @@ export async function main(): Promise<number> {
     lastDiscoveryResult = await refreshModelCatalog();
     while (true) {
       process.stdout.write("\nMahout Bench\n");
-      const choice = await choose(rl, "Menu", ["start bench", "resume bench", "validate judge", "list benchs", "exit"]);
+      const choice = await choose(rl, "Menu", ["start bench", "resume bench", "validate judge", "bootstrap/configure providers", "list benchs", "exit"]);
       if (choice === "exit") {
         return 0;
+      }
+      if (choice === "bootstrap/configure providers") {
+        await bootstrap(["--skip-setup"], rl);
+        lastDiscoveryResult = await refreshModelCatalog();
+        continue;
       }
       if (choice === "list benchs") {
         listBenchs();

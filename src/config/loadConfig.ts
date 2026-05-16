@@ -30,7 +30,8 @@ import {
   type ModelCatalog,
   type ModelCatalogEntry,
   type ProfileConfig,
-  type ProviderCatalog
+  type ProviderCatalog,
+  type ProviderCatalogEntry
 } from "../contracts/autobench.js";
 import { readCsvFile, readJsonFile, readTextFile } from "../io/filesystem.js";
 import { resolveDataRoot, resolveDataRootForRepo } from "../runtime/paths.js";
@@ -140,6 +141,11 @@ export function parseProfileOrder(repoRoot: string, profilesRoot: string): { ord
 
 export function loadProviderCatalog(repoRoot: string, catalogPath = DEFAULT_PROVIDERS_CATALOG): ProviderCatalog {
   const catalog = readJsonFile<ProviderCatalog>(path.join(repoRoot, catalogPath));
+  const localCatalogPath = path.join(resolveDataRoot(), "config", "providers.local.json");
+  if (fs.existsSync(localCatalogPath)) {
+    const localCatalog = readJsonFile<ProviderCatalog>(localCatalogPath);
+    catalog.providers = mergeProviderEntries(catalog.providers, localCatalog.providers);
+  }
   validateProviderCatalog(catalog, catalogPath);
   return catalog;
 }
@@ -403,7 +409,7 @@ function catalogApiKeyValue(repoRoot: string, configuredApiKey: string, apiKeyFi
   if (!apiKeyFile) {
     return configuredApiKey;
   }
-  const filePath = path.isAbsolute(apiKeyFile) ? apiKeyFile : path.resolve(repoRoot, apiKeyFile);
+  const filePath = resolveRuntimeConfigPath(repoRoot, apiKeyFile);
   if (!fs.existsSync(filePath)) {
     throw new Error(`Missing apiKeyFile configured for model ${modelId}: ${filePath}`);
   }
@@ -481,5 +487,30 @@ function resolveRepoRelativeConfigPath(configPath: string, value: string): strin
     return value;
   }
   const repoRoot = path.resolve(path.dirname(configPath), "..", "..");
+  return resolveRuntimeConfigPath(repoRoot, value);
+}
+
+function resolveRuntimeConfigPath(repoRoot: string, value: string): string {
+  if (path.isAbsolute(value)) {
+    return value;
+  }
+  const dataRootPath = path.resolve(resolveDataRoot(), value);
+  if (fs.existsSync(dataRootPath)) {
+    return dataRootPath;
+  }
   return path.resolve(repoRoot, value);
+}
+
+function mergeProviderEntries(
+  baseProviders: ProviderCatalogEntry[],
+  localProviders: ProviderCatalogEntry[] | undefined
+): ProviderCatalogEntry[] {
+  if (!Array.isArray(localProviders) || localProviders.length === 0) {
+    return baseProviders;
+  }
+  const providerById = new Map(baseProviders.map((provider) => [provider.id, provider]));
+  for (const provider of localProviders) {
+    providerById.set(provider.id, provider);
+  }
+  return [...providerById.values()];
 }
