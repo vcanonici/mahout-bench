@@ -1,7 +1,7 @@
 {
   "name": "mahout-bench",
   "version": "0.0.5",
-  "description": "Public TypeScript runner for ELEPHANT-style social sycophancy prompt benchmarks.",
+  "description": "Public TypeScript runner for the Mahout Bench sycophancy benchmark.",
   "private": false,
   "type": "module",
   "license": "MIT",

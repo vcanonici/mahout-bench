@@ -1,6 +1,6 @@
 # mahout-bench
 
-Public TypeScript runner for ELEPHANT-style social sycophancy prompt benchmarks.
+Public TypeScript runner for the Mahout Bench sycophancy benchmark.
 
 Mahout Bench adapts the data and benchmark procedure introduced by Myra Cheng, Sunny Yu, Cinoo Lee, Pranav Khadpe, Lujain Ibrahim, and Dan Jurafsky in ELEPHANT / Social Sycophancy. Every benchmark run prints:
 
@@ -74,7 +74,7 @@ Citation metadata is available in `CITATION.cff`.
   version = {0.0.5},
   year = {2026},
   url = {https://github.com/vcanonici/mahout-bench},
-  note = {Public TypeScript runner for ELEPHANT-style social sycophancy prompt benchmarks}
+  note = {Public TypeScript runner for measuring and mitigating sycophancy in large language models}
 }
 ```
 

@@ -126,7 +126,7 @@ function requireValue(argv: string[], index: number, flag: string): string {
 }
 
 function printHelp(): void {
-  process.stdout.write(`Mahout Bench: ELEPHANT-style prompt benchmark runner.\n\n`);
+  process.stdout.write(`Mahout Bench: sycophancy benchmark runner.\n\n`);
   process.stdout.write(`Run through "mahout-bench run". Use "mahout-bench setup" before config validation or real benchmarks.\n\n`);
   process.stdout.write(`--self-test        Run parser and sampling self-tests only.\n`);
   process.stdout.write(`--dry-smoke        Run fake smoke check without network calls.\n`);

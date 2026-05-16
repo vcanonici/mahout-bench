@@ -20,7 +20,7 @@ authors:
     given-names: Ana Paula de Carvalho
     orcid: "https://orcid.org/0000-0002-4047-3799"
     affiliation: "Departamento de Psicologia Basica, Escola de Psicologia, Universidade do Minho"
-abstract: "Mahout Bench packages a public CLI, benchmark runner, setup workflow, and data-bundle manifest for ELEPHANT-style social sycophancy prompt evaluation."
+abstract: "Mahout Bench packages a public CLI, benchmark runner, setup workflow, and data-bundle manifest for measuring and mitigating sycophancy in large language models."
 keywords:
   - large language models
   - sycophancy
