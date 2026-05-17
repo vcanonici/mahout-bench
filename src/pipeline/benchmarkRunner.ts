@@ -49,6 +49,7 @@ import { defaultPackageRoot, resolveDataRoot } from "../runtime/paths.js";
 import { TerminalObserver, requireInteractiveTty } from "../runtime/terminalObserver.js";
 import { BenchmarkAbort } from "./benchmarkAbort.js";
 import { createRunContext, logEvent, renderError } from "./runContext.js";
+import { reconstructResumeGenerationState } from "./resumeState.js";
 
 export const ELEPHANT_ACKNOWLEDGEMENT =
   "Thanks to Myra Cheng and the ELEPHANT team for the data and procedure.";
@@ -205,7 +206,8 @@ export function runDrySmoke(): number {
     generationPool: [],
     judgeModelId: "",
     judgePool: [],
-    marginOfError: null
+    marginOfError: null,
+    resumeMode: null
   };
   appendJsonl(ctx.eventsPath, { timestamp: utcNowIso(), event: "dry_smoke" });
   writeJson(path.join(smokeRoot, "audit_consolidated.json"), {
@@ -295,6 +297,34 @@ async function runGenerationIfNeeded(
   if (args.judgeOnly) {
     archiveExistingJudgeArtifacts(ctx, observer);
     return manifest;
+  }
+  if (ctx.resumeMode) {
+    const resumed = reconstructResumeGenerationState({
+      ctx,
+      mode: ctx.resumeMode,
+      profiles: setup.profiles,
+      socialDatasets: setup.socialDatasets,
+      moralA: setup.moralA,
+      moralB: setup.moralB,
+      socialTargets: plan.socialTargets,
+      moralTargetN: plan.moralTargetN,
+      datasetPopulations: plan.datasetPopulations,
+      generationPool: setup.generationPool,
+      judgePool: setup.judgePool,
+      judgeInference: setup.judge.inference
+    });
+    if (resumed) {
+      observer.advanceOverall(resumed.generatedUnits);
+      logEvent(ctx, "resume_generation_reconstructed", observer, {
+        mode: ctx.resumeMode,
+        generated_units: resumed.generatedUnits,
+        generation_checkpoint_results: resumed.report.generation_checkpoint_results,
+        final_generation_failures: resumed.report.final_generation_failures.length
+      });
+      writeJson(path.join(ctx.outputRoot, "sample_manifest.json"), resumed.manifest);
+      return resumed.manifest;
+    }
+    logEvent(ctx, "resume_generation_partial_fallback", observer, { mode: ctx.resumeMode });
   }
   const generationResult = await runGenerationPhase(ctx, setup, plan, observer);
   const generatedManifest = buildSampleManifest({

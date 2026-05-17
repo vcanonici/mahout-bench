@@ -158,6 +158,7 @@ export class TerminalObserver {
   }
 
   public start(total: number, description = "Overall benchmark"): void {
+    this.resetLiveSession();
     this.overallTotal = Math.max(1, total);
     this.overallTask = description;
     this.startedAtMs = Date.now();
@@ -376,6 +377,22 @@ export class TerminalObserver {
     for (const call of this.calls) {
       this.updateCallStats(call);
     }
+  }
+
+  private resetLiveSession(): void {
+    this.overallValue = 0;
+    this.overallOk = 0;
+    this.overallFailed = 0;
+    this.stageTask = null;
+    this.stageTotal = 1;
+    this.stageValue = 0;
+    this.stageOk = 0;
+    this.stageFailed = 0;
+    this.backendStats.clear();
+    this.callDurationTotal = 0;
+    this.callCount = 0;
+    this.retryCount = 0;
+    this.failureCount = 0;
   }
 
   private restoreState(): void {

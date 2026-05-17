@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use Mahout Bench, please cite this software."
 title: "Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models"
 type: software
-version: "0.0.7"
-date-released: "2026-05-16"
+version: "0.0.8"
+date-released: "2026-05-17"
 license: MIT
 repository-code: "https://github.com/vcanonici/mahout-bench"
 url: "https://github.com/vcanonici/mahout-bench"
@@ -30,8 +30,8 @@ keywords:
 preferred-citation:
   type: software
   title: "Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models"
-  version: "0.0.7"
-  date-released: "2026-05-16"
+  version: "0.0.8"
+  date-released: "2026-05-17"
   repository-code: "https://github.com/vcanonici/mahout-bench"
   authors:
     - family-names: Canonici

@@ -220,6 +220,7 @@ export interface RunContext {
   judgeModelId: string;
   judgePool: GenerationPoolRequest[];
   marginOfError: number | null;
+  resumeMode: "fast" | "check" | null;
 }
 
 export interface BenchmarkArgs {
@@ -238,6 +239,7 @@ export interface BenchmarkArgs {
   judgePool: GenerationPoolRequest[];
   benchmarkName: string;
   marginOfError: number | null;
+  resumeMode: "fast" | "check" | null;
 }
 
 export interface SampleManifestDatasetEntry {

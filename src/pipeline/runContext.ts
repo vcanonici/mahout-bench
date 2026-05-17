@@ -47,7 +47,8 @@ export function createRunContext(args: BenchmarkArgs): RunContext {
     generationPool: args.generationPool,
     judgeModelId: args.judgeModelId,
     judgePool: args.judgePool,
-    marginOfError: args.marginOfError
+    marginOfError: args.marginOfError,
+    resumeMode: args.resumeMode
   };
 }
 

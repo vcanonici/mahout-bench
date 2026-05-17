@@ -15,6 +15,7 @@ import {
   PROFILE_ORDER,
   type AuditConsolidated,
   type DatasetConfig,
+  type InferenceConfig,
   type RunContext
 } from "../src/contracts/autobench.js";
 import {
@@ -30,10 +31,12 @@ import { parseGenerationPoolJson, resolveGenerationPool } from "../src/config/ge
 import { runGenerationQueue } from "../src/generation/generationScheduler.js";
 import { nextSocialCandidateBatch } from "../src/generation/socialGeneration.js";
 import { archiveExistingJudgeArtifacts, judgeArtifactPaths, validateExistingJudgeInputs } from "../src/judging/judgeArtifacts.js";
+import { runJudgePreflight } from "../src/judging/judgeScoring.js";
 import { generationUnitKey, judgeUnitKey, readGenerationResult, readJudgeLabel, writeGenerationResult, writeJudgeLabel } from "../src/pipeline/checkpoint.js";
 import { metricsForDataset } from "../src/judging/judgePrompts.js";
 import { buildExtraBody, buildJudgeResponseFormat, buildLmStudioNativeBody, isProviderLimitResponse } from "../src/inference/chatClient.js";
 import { runDrySmoke, runSelfTest, validateConfigCli } from "../src/pipeline/benchmarkRunner.js";
+import { reconstructResumeGenerationState } from "../src/pipeline/resumeState.js";
 import { writeResults } from "../src/reporting/resultsReport.js";
 import { TerminalObserver } from "../src/runtime/terminalObserver.js";
 import { computeDoubleSidedScores, computeMoralScores, outputFileForMode, summaryForScoreFile } from "../src/scoring/scoreEngine.js";
@@ -449,7 +452,8 @@ describe("mahout-bench", () => {
         judgeModelId: "",
         judgePool: [],
         benchmarkName: "",
-        marginOfError: null
+        marginOfError: null,
+        resumeMode: null
       })
     ).toBe(0);
   });
@@ -479,7 +483,8 @@ describe("mahout-bench", () => {
       generationPool: [],
       judgeModelId: "",
       judgePool: [],
-      marginOfError: null
+      marginOfError: null,
+      resumeMode: null
     };
 
     const audit = buildAuditFixture(outputRoot);
@@ -923,6 +928,99 @@ describe("mahout-bench", () => {
     expect(readJudgeLabel(ctx, `${judgeKey}:missing`)).toBeUndefined();
   });
 
+  it("reconstructs fast resume generation state from response artifacts", () => {
+    const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "mahout-fast-resume-"));
+    const ctx = buildRunContext(outputRoot);
+    const social = datasetConfig("oeq", "prompt", "social");
+    const moralA = datasetConfig("aita_nta_og", "original_post", "moral_a");
+    const moralB = datasetConfig("aita_nta_flip", "flipped_story", "moral_b");
+    const profile = {
+      name: "Felix-V",
+      description: "",
+      sourcePath: "",
+      generation: buildTestInference("generation"),
+      sampling: { confidence: 0.95, marginOfError: 0 },
+      datasetsDir: "datasets",
+      seed: 42,
+      datasets: { oeq: social, aita_nta_og: moralA, aita_nta_flip: moralB }
+    };
+
+    writeCsvJsonl([
+      { prompt: "a", _source_index: 7, _status: "ok", "Felix-V_response": "answer" },
+      { prompt: "b", _source_index: 9, _status: "refused", "Felix-V_response": "" }
+    ], outputFileForMode(ctx, "Felix-V", "oeq", "responses"));
+    for (const [dataset, mode] of [[moralA, "free"], [moralA, "binary"], [moralB, "free"], [moralB, "binary"]] as const) {
+      writeCsvJsonl([
+        { id: "m1", _source_index: "m1", _status: "ok", "Felix-V_response": "answer" },
+        { id: "m2", _source_index: "m2", _status: "refused", "Felix-V_response": "" }
+      ], outputFileForMode(ctx, "Felix-V", dataset.name, mode));
+    }
+    fs.writeFileSync(path.join(outputRoot, "ui_calls.jsonl"), [
+      JSON.stringify({ phase: "generation", profile: "Felix-V", dataset: "oeq", mode: "responses", row_id: 1, ok: false, error: "blank text" }),
+      JSON.stringify({ phase: "generation", profile: "Felix-V", dataset: "oeq", mode: "responses", row_id: 1, ok: true })
+    ].join("\n").concat("\n"), "utf8");
+
+    const state = reconstructResumeGenerationState({
+      ctx,
+      mode: "check",
+      profiles: [profile],
+      socialDatasets: [social],
+      moralA,
+      moralB,
+      socialTargets: { oeq: 2 },
+      moralTargetN: 2,
+      datasetPopulations: { oeq: 2, aita_nta_og: 2, aita_nta_flip: 2 },
+      generationPool: [],
+      judgePool: [],
+      judgeInference: null
+    });
+
+    expect(state?.generatedUnits).toBe(10);
+    expect(state?.manifest.datasets.oeq?.acceptedIndices).toEqual([7, 9]);
+    expect(state?.manifest.moral_pair_ids).toEqual(["m1", "m2"]);
+    expect(state?.report.final_generation_failures).toEqual([]);
+    expect(fs.existsSync(path.join(outputRoot, "resume_check_report.json"))).toBe(true);
+  });
+
+  it("keeps judging with healthy preflight backends when one pool backend is offline", async () => {
+    const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), "mahout-preflight-pool-"));
+    const ctx = buildRunContext(outputRoot);
+    const observer = new TerminalObserver(false);
+    observer.configureRun(outputRoot);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("offline")) {
+        throw new TypeError("fetch failed");
+      }
+      return new Response(JSON.stringify({
+        model: "judge-model",
+        choices: [{ finish_reason: "stop", message: { content: "{\"label\":\"1\"}" } }],
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }) as typeof fetch;
+
+    try {
+      const judge = {
+        inference: buildTestInference("judge-model"),
+        promptPrefix: "",
+        promptSuffix: "",
+        outputMode: "json_schema_binary_label"
+      };
+      const active = await runJudgePreflight(ctx, judge, [
+        { backendId: "offline:0", modelId: "offline", workers: 1, timeoutSeconds: 1, inference: { ...judge.inference, apiBaseUrl: "http://offline.test/v1" } },
+        { backendId: "online:1", modelId: "online", workers: 1, timeoutSeconds: 1, inference: { ...judge.inference, apiBaseUrl: "http://online.test/v1" } }
+      ], observer);
+
+      expect(active.map((backend) => backend.backendId)).toEqual(["online:1"]);
+      const events = fs.readFileSync(path.join(outputRoot, "run_events.jsonl"), "utf8");
+      expect(events).toContain("judge_preflight_backend_failed");
+      expect(events).toContain("judge_preflight_passed");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("parses strict binary validation labels and rejects non-contract outputs", () => {
     expect(normalizeReferenceLabel("False")).toBe(0);
     expect(normalizeReferenceLabel("0.0")).toBe(0);
@@ -1291,7 +1389,8 @@ function buildRunContext(outputRoot: string): RunContext {
     generationPool: [],
     judgeModelId: "",
     judgePool: [],
-    marginOfError: null
+    marginOfError: null,
+    resumeMode: null
   };
 }
 
@@ -1306,6 +1405,29 @@ function datasetConfig(name: string, promptColumn: string, task: string): Datase
     baseline: 0.5,
     promptPrefix: "",
     promptSuffix: ""
+  };
+}
+
+function buildTestInference(model: string): InferenceConfig {
+  return {
+    provider: "openai_compatible",
+    apiBaseUrl: "http://localhost:1234/v1",
+    apiMode: "openai_chat_completions",
+    apiKey: "test",
+    apiKeyFile: "",
+    model,
+    temperature: 0,
+    topP: 1,
+    maxTokens: 16,
+    contextLength: 1024,
+    parallelism: 1,
+    thinkingEnabled: false,
+    reasoningEffort: "low",
+    includeReasoningParameter: false,
+    systemPrompt: "",
+    quotaLabel: "",
+    quotaMaxRequests: null,
+    quotaWindowSeconds: null
   };
 }
 

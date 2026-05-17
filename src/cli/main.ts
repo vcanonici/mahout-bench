@@ -42,7 +42,8 @@ function parseArgs(argv: string[]): BenchmarkArgs {
     judgeModelId: "",
     judgePool: [],
     benchmarkName: "",
-    marginOfError: null
+    marginOfError: null,
+    resumeMode: null
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -93,6 +94,9 @@ function parseArgs(argv: string[]): BenchmarkArgs {
       case "--margin-of-error":
         args.marginOfError = parseMarginOfError(requireValue(argv, ++index, current));
         break;
+      case "--resume-mode":
+        args.resumeMode = parseResumeMode(requireValue(argv, ++index, current));
+        break;
       case "--help":
       case "-h":
         printHelp();
@@ -103,6 +107,14 @@ function parseArgs(argv: string[]): BenchmarkArgs {
   }
 
   return args;
+}
+
+function parseResumeMode(value: string): BenchmarkArgs["resumeMode"] {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "fast" || normalized === "check") {
+    return normalized;
+  }
+  throw new Error(`Expected --resume-mode fast or check, got: ${value}`);
 }
 
 function parseMarginOfError(value: string): number {
@@ -142,6 +154,7 @@ function printHelp(): void {
   process.stdout.write(`--judge-pool           JSON array of judge backends with modelId, workers, timeoutSeconds.\n`);
   process.stdout.write(`--benchmark-name       Human-readable benchmark name stored in artifacts.\n`);
   process.stdout.write(`--margin-of-error      Sampling margin override, e.g. 0.10, 0, full, or fullbench.\n`);
+  process.stdout.write(`--resume-mode          Resume strategy: fast or check.\n`);
   process.stdout.write(`--skip-lms         Compatibility no-op; LM Studio is always provider-managed.\n`);
 }
 

@@ -102,7 +102,7 @@ describe("TerminalObserver runtime dashboard", () => {
     expect(state.backends["LMS remoto"].calls).toBe(2);
   });
 
-  it("restores persisted progress when a run is resumed", () => {
+  it("starts live progress at zero when a run is resumed", () => {
     const runDir = fs.mkdtempSync(path.join(os.tmpdir(), "terminal-observer-progress-"));
     const first = new TerminalObserver(false);
 
@@ -122,11 +122,11 @@ describe("TerminalObserver runtime dashboard", () => {
 
     const state = JSON.parse(fs.readFileSync(path.join(runDir, "ui_state.json"), "utf8"));
 
-    expect(state.stage.value).toBe(8);
-    expect(state.overall.value).toBe(12);
+    expect(state.stage.value).toBe(1);
+    expect(state.overall.value).toBe(1);
   });
 
-  it("backfills UI calls and progress from legacy run artifacts on resume", () => {
+  it("backfills legacy UI calls without carrying progress into the resumed live session", () => {
     const runDir = fs.mkdtempSync(path.join(os.tmpdir(), "terminal-observer-backfill-"));
     writeJsonl(path.join(runDir, "run_events.jsonl"), [
       {
@@ -185,9 +185,10 @@ describe("TerminalObserver runtime dashboard", () => {
       row_id: 42,
       ok: true
     });
-    expect(state.stage.value).toBe(1);
-    expect(state.overall.value).toBe(1);
-    expect(state.backends["LMS local"].answered_in_stage).toBe(1);
+    expect(state.stage.value).toBe(0);
+    expect(state.overall.value).toBe(0);
+    expect(state.calls.total).toBe(0);
+    expect(state.backends["LMS local"]).toBeUndefined();
   });
 });
 

@@ -39,6 +39,8 @@ mahout-bench status --run "1" --json
 mahout-bench tui
 ```
 
+Bench resume supports `--resume-mode fast|check`. The TUI asks for `fast resume` or `checked resume` before selecting the run. Fast resume reconstructs completed generation from existing `responses*.jsonl` files and continues without replaying every checkpoint hit; checked resume also writes `resume_check_report.json` in the run directory.
+
 `setup` downloads `mahout-bench-data-v0.0.5.zip` and its manifest from the `vcanonici/mahout-bench` GitHub Release, verifies SHA256 and size, extracts into the data root, and checks required dataset paths. Mahout Bench is the distributor/source of the setup bundle; ELEPHANT remains the upstream research/data origin and citation.
 
 `bootstrap` is the recommended first command after npm install. It prepares the data root, asks for optional OpenRouter and MiniMax API keys, requires at least one local LM Studio or Ollama-compatible backend, lets you add any number of additional local-network or remote backends, and writes user-owned config under `MAHOUT_BENCH_HOME` or `./.mahout-bench`. It never writes real secrets into the npm package. First interactive runs also offer bootstrap when no bootstrap marker exists, and the TUI includes `bootstrap/configure providers`.
@@ -94,7 +96,7 @@ Citation metadata is available in `CITATION.cff`.
 @software{canonici_mahout_bench_2026,
   author = {Vinicius Garcia Canonici and Luis Miguel da Rocha de Matos and Ana Paula de Carvalho Soares},
   title = {Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models},
-  version = {0.0.7},
+  version = {0.0.8},
   year = {2026},
   url = {https://github.com/vcanonici/mahout-bench},
   note = {Public TypeScript runner for measuring and mitigating sycophancy in large language models}

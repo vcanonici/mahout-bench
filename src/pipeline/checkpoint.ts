@@ -39,6 +39,10 @@ export function readGenerationResult(ctx: RunContext, key: string): GenerationRe
   return checkpoint.results[key] ?? null;
 }
 
+export function readGenerationResults(ctx: RunContext): Record<string, GenerationResult> {
+  return readGenerationCheckpoint(ctx).results;
+}
+
 export function writeGenerationResult(ctx: RunContext, key: string, result: GenerationResult): void {
   const checkpoint = readGenerationCheckpoint(ctx);
   checkpoint.results[key] = result;
@@ -48,6 +52,10 @@ export function writeGenerationResult(ctx: RunContext, key: string, result: Gene
 export function readJudgeLabel(ctx: RunContext, key: string): string | null | undefined {
   const checkpoint = readJudgeCheckpoint(ctx);
   return Object.prototype.hasOwnProperty.call(checkpoint.labels, key) ? checkpoint.labels[key] : undefined;
+}
+
+export function readJudgeLabels(ctx: RunContext): Record<string, string | null> {
+  return readJudgeCheckpoint(ctx).labels;
 }
 
 export function writeJudgeLabel(ctx: RunContext, key: string, label: string | null): void {

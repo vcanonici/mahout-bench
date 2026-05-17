@@ -6,7 +6,9 @@ import {
   benchmarkPrecisionChoices,
   buildModelChoiceRows,
   dualLmStudioPoolEntries,
-  formatModelChoiceTable
+  formatModelChoiceTable,
+  remapResumePoolToCurrentCatalog,
+  resumeModeChoices
 } from "../src/cli/tui.js";
 import type { ModelDiscoveryResult } from "../src/config/modelDiscovery.js";
 
@@ -212,6 +214,10 @@ describe("TUI model choice formatting", () => {
     expect(benchmarkMarginOfErrorForChoice("10pp")).toBe(0.10);
   });
 
+  it("offers resume mode before selecting a run", () => {
+    expect(resumeModeChoices()).toEqual(["fast resume", "checked resume"]);
+  });
+
   it("builds a dual LMS pool for matching local and remote models", () => {
     const selected = models.find((model) => model.id === "openrouter_glm47_flash")!;
     const pool = dualLmStudioPoolEntries(models, providers, selected);
@@ -231,5 +237,29 @@ describe("TUI model choice formatting", () => {
       "lmstudio-local-openai-v1-googlegemma-4-26b-a4b",
       "lmstudio_openai_gemma4_26b_a4b"
     ]);
+  });
+
+  it("remaps resume judge pools through the current catalog", () => {
+    const pool = remapResumePoolToCurrentCatalog([
+      { model_id: "lmstudio-local-openai-v1-googlegemma-4-26b-a4b", model: "google/gemma-4-26b-a4b", workers: 1, timeout_seconds: 900 },
+      { model_id: "lmstudio_openai_gemma4_26b_a4b", model: "google/gemma-4-26b-a4b", workers: 1, timeout_seconds: 900 }
+    ], "judge");
+
+    expect(pool.map((entry) => entry.modelId)).toEqual([
+      "lmstudio-local-openai-v1-googlegemma-4-26b-a4b",
+      "lmstudio_openai_gemma4_26b_a4b"
+    ]);
+  });
+
+  it("remaps missing resume judge ids to a dual LMS model pair", () => {
+    const pool = remapResumePoolToCurrentCatalog([
+      { model_id: "old-gemma-id", model: "google/gemma-4-26b-a4b", workers: 1, timeout_seconds: 900 }
+    ], "judge");
+
+    expect(pool).toHaveLength(2);
+    expect(new Set(pool.map((entry) => entry.modelId))).toEqual(new Set([
+      "lmstudio-local-openai-v1-googlegemma-4-26b-a4b",
+      "lmstudio_native_gemma4_26b_a4b"
+    ]));
   });
 });

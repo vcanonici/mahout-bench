@@ -40,18 +40,18 @@ export async function executeJudgePhase(args: {
   doubleSidedSummaries: AuditConsolidated["double_sided_summaries"];
 }> {
   const { ctx, judge, judgePool, profiles, socialDatasets, moralA, moralB, observer } = args;
-  await runJudgePreflight(ctx, judge, judgePool, observer);
+  const activeJudgePool = await runJudgePreflight(ctx, judge, judgePool, observer);
   const socialSummaries: AuditConsolidated["social_summaries"] = [];
   const moralSummaries: AuditConsolidated["moral_summaries"] = [];
   const doubleSidedSummaries: AuditConsolidated["double_sided_summaries"] = [];
 
   for (const profile of profiles) {
     for (const dataset of socialDatasets) {
-      const scorePath = await scoreFile(ctx, judge, judgePool, profile, dataset, "responses", false, observer);
+      const scorePath = await scoreFile(ctx, judge, activeJudgePool, profile, dataset, "responses", false, observer);
       socialSummaries.push(summaryForScoreFile(scorePath, profile, dataset));
     }
     for (const dataset of [moralA, moralB]) {
-      const scorePath = await scoreFile(ctx, judge, judgePool, profile, dataset, "free", true, observer);
+      const scorePath = await scoreFile(ctx, judge, activeJudgePool, profile, dataset, "free", true, observer);
       socialSummaries.push(summaryForScoreFile(scorePath, profile, dataset, true));
     }
     moralSummaries.push(computeMoralScores(ctx, profile, moralA, moralB));
@@ -171,7 +171,7 @@ export async function runJudgePreflight(
   judge: JudgeConfig,
   judgePool: GenerationPoolBackend[],
   observer: TerminalObserver
-): Promise<void> {
+): Promise<GenerationPoolBackend[]> {
   const cases = judgePreflightCases();
   const stage = observer.startStage(`judge-preflight:${judge.inference.model}`, cases.length * judgePool.length);
   logEvent(ctx, "judge_preflight_started", observer, {
@@ -189,44 +189,79 @@ export async function runJudgePreflight(
 
     const responseFormat = buildJudgeResponseFormat(judge);
     const summaries: Array<Record<string, unknown>> = [];
+    const failures: Array<Record<string, unknown>> = [];
+    const activeBackends: GenerationPoolBackend[] = [];
     for (const backend of judgePool) {
-      for (const [metric, question, response] of cases) {
-        const raw = await callJudgePreflightProvider(ctx, judge, backend, metric, question, response, responseFormat, observer);
-        const parsed = parseJudgeOutput(raw.extracted.text, judge.outputMode);
-        const reasoningTokens = extractReasoningTokens(raw.responseDump);
-        const finishReason = extractFinishReason(raw.responseDump);
-        if (raw.responseDump.model !== backend.inference.model) {
-          throw new Error(`Judge preflight failed for ${metric}: response model ${String(raw.responseDump.model)} != ${backend.inference.model}`);
+      const backendSummaries: Array<Record<string, unknown>> = [];
+      try {
+        for (const [metric, question, response] of cases) {
+          const raw = await callJudgePreflightProvider(ctx, judge, backend, metric, question, response, responseFormat, observer);
+          const summary = validateJudgePreflightResponse(judge, backend, metric, raw.responseDump, raw.extracted.text);
+          backendSummaries.push(summary);
+          stage.advance();
+          observer.advanceOverall();
         }
-        if (!parsed.ok) {
-          throw new Error(`Judge preflight failed for ${metric}: ${parsed.error}`);
-        }
-        if (finishReason !== "stop") {
-          throw new Error(`Judge preflight failed for ${metric}: finish_reason=${finishReason}`);
-        }
-        if (reasoningTokens !== null && reasoningTokens !== 0) {
-          throw new Error(`Judge preflight failed for ${metric}: reasoning_tokens=${reasoningTokens}`);
-        }
-        summaries.push({
+        summaries.push(...backendSummaries);
+        activeBackends.push(backend);
+      } catch (error) {
+        const failure = {
           backend_id: backend.backendId,
           model_id: backend.modelId,
-          metric,
-          parsed_label: parsed.label,
-          finish_reason: finishReason,
-          reasoning_tokens: reasoningTokens
-        });
-        stage.advance();
-        observer.advanceOverall();
+          error: renderError(error)
+        };
+        failures.push(failure);
+        logEvent(ctx, "judge_preflight_backend_failed", observer, failure);
+        const remainingChecks = Math.max(0, cases.length - backendSummaries.length);
+        if (remainingChecks > 0) {
+          stage.advance(remainingChecks, { ok: false, failureKind: "judge_preflight_backend_failed" });
+        }
       }
+    }
+    if (activeBackends.length === 0) {
+      throw new Error(`Judge preflight failed for every backend: ${failures.map((failure) => `${String(failure.model_id)}=${String(failure.error)}`).join("; ")}`);
     }
     logEvent(ctx, "judge_preflight_passed", observer, {
       judge_model: judge.inference.model,
       output_mode: judge.outputMode,
-      checks: summaries
+      checks: summaries,
+      skipped_backends: failures
     });
+    return activeBackends;
   } finally {
     stage.close();
   }
+}
+
+function validateJudgePreflightResponse(
+  judge: JudgeConfig,
+  backend: GenerationPoolBackend,
+  metric: string,
+  responseDump: Record<string, unknown>,
+  text: string
+): Record<string, unknown> {
+  const parsed = parseJudgeOutput(text, judge.outputMode);
+  const reasoningTokens = extractReasoningTokens(responseDump);
+  const finishReason = extractFinishReason(responseDump);
+  if (responseDump.model !== backend.inference.model) {
+    throw new Error(`Judge preflight failed for ${metric}: response model ${String(responseDump.model)} != ${backend.inference.model}`);
+  }
+  if (!parsed.ok) {
+    throw new Error(`Judge preflight failed for ${metric}: ${parsed.error}`);
+  }
+  if (finishReason !== "stop") {
+    throw new Error(`Judge preflight failed for ${metric}: finish_reason=${finishReason}`);
+  }
+  if (reasoningTokens !== null && reasoningTokens !== 0) {
+    throw new Error(`Judge preflight failed for ${metric}: reasoning_tokens=${reasoningTokens}`);
+  }
+  return {
+    backend_id: backend.backendId,
+    model_id: backend.modelId,
+    metric,
+    parsed_label: parsed.label,
+    finish_reason: finishReason,
+    reasoning_tokens: reasoningTokens
+  };
 }
 
 async function callJudgePreflightProvider(

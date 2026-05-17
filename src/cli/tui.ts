@@ -83,8 +83,9 @@ type RunStartedEvent = {
   output_root?: string;
 };
 
-type RunStartedPoolEntry = {
+export type RunStartedPoolEntry = {
   model_id?: string;
+  model?: string;
   workers?: number;
   timeout_seconds?: number;
 };
@@ -177,20 +178,23 @@ async function buildStartArgs(rl: readline.Interface): Promise<BenchmarkArgs> {
     judgeModelId: judgeModel.id,
     judgePool,
     benchmarkName,
-    marginOfError
+    marginOfError,
+    resumeMode: null
   };
 }
 
 async function buildResumeArgs(rl: readline.Interface): Promise<BenchmarkArgs> {
+  const resumeMode = resumeModeForChoice(await choose(rl, "Resume mode", resumeModeChoices()));
   const run = await chooseResumableBenchRun(rl);
   const profileRoot = run.started.profiles_root ?? (await chooseProfileRoot(rl)).root;
   const profiles = parseRunProfiles(run.started);
   const marginOfError = run.started.margin_of_error ?? await chooseMarginOfError(rl, profileRoot, profiles);
-  const generationPool = manifestPoolToRequests(run.started.generation_pool ?? []);
-  const judgePool = manifestPoolToRequests(run.started.judge_pool ?? []);
+  const generationPool = remapResumePoolToCurrentCatalog(run.started.generation_pool ?? [], "generation");
+  const judgePool = remapResumePoolToCurrentCatalog(run.started.judge_pool ?? [], "judge");
   const judgeModelId = judgePool[1]?.modelId ?? judgePool[0]?.modelId ?? "";
   process.stdout.write(
     `\nRetomando ${run.outputRoot}\n` +
+      `Resume mode: ${resumeMode}\n` +
       `Checkpoint: ${run.checkpointResults} generation result(s), raw_generation=${run.rawGenerationLines} linha(s)\n`
   );
   return {
@@ -208,8 +212,17 @@ async function buildResumeArgs(rl: readline.Interface): Promise<BenchmarkArgs> {
     judgeModelId,
     judgePool,
     benchmarkName: run.started.benchmark_name ?? path.basename(run.outputRoot),
-    marginOfError
+    marginOfError,
+    resumeMode
   };
+}
+
+export function resumeModeChoices(): string[] {
+  return ["fast resume", "checked resume"];
+}
+
+function resumeModeForChoice(choice: string): BenchmarkArgs["resumeMode"] {
+  return choice === "checked resume" ? "check" : "fast";
 }
 
 async function chooseGenerationPool(rl: readline.Interface, selectedModel: ModelCatalogEntry): Promise<GenerationPoolRequest[]> {
@@ -1066,12 +1079,60 @@ function parseRunProfiles(started: RunStartedEvent): string[] {
     .filter(Boolean);
 }
 
-function manifestPoolToRequests(pool: RunStartedPoolEntry[]): GenerationPoolRequest[] {
-  return pool.map((entry) => ({
-    modelId: String(entry.model_id ?? ""),
-    workers: Number(entry.workers),
-    timeoutSeconds: Number(entry.timeout_seconds)
-  })).filter((entry) => entry.modelId && Number.isInteger(entry.workers) && Number.isInteger(entry.timeoutSeconds));
+export function remapResumePoolToCurrentCatalog(
+  pool: RunStartedPoolEntry[],
+  role: "generation" | "judge"
+): GenerationPoolRequest[] {
+  const catalog = loadModelCatalog(repoRoot);
+  const providers = loadProviderCatalog(repoRoot).providers;
+  const mapped = pool.map((entry) => remapResumePoolEntry(entry, role)).filter((entry): entry is GenerationPoolRequest => entry !== null);
+  const allIdsStillExist = pool.every((entry) => hasDirectResumeModel(entry, role));
+  if (mapped.length === pool.length && allIdsStillExist) {
+    return mapped;
+  }
+  const fallbackModel = pool
+    .map((entry) => findCompatibleResumeModel(entry, role))
+    .find((model): model is ModelCatalogEntry => Boolean(model));
+  if (!fallbackModel) {
+    return mapped;
+  }
+  const compatible = catalog.models.filter((model) => modelSupportsRole(model, role));
+  const dual = dualLmStudioPoolEntries(compatible, providers, fallbackModel);
+  return dual.length >= 2 ? dual : [defaultPoolEntry(fallbackModel, providers)];
+}
+
+function hasDirectResumeModel(entry: RunStartedPoolEntry, role: "generation" | "judge"): boolean {
+  const catalog = loadModelCatalog(repoRoot);
+  const modelId = String(entry.model_id ?? "");
+  return catalog.models.some((model) => (model.id === modelId || model.aliases.includes(modelId)) && modelSupportsRole(model, role));
+}
+
+function remapResumePoolEntry(entry: RunStartedPoolEntry, role: "generation" | "judge"): GenerationPoolRequest | null {
+  const model = findCompatibleResumeModel(entry, role);
+  if (!model) {
+    return null;
+  }
+  const workers = Number(entry.workers);
+  const timeoutSeconds = Number(entry.timeout_seconds);
+  if (!Number.isInteger(workers) || workers <= 0 || !Number.isInteger(timeoutSeconds) || timeoutSeconds <= 0) {
+    return null;
+  }
+  return {
+    modelId: model.id,
+    workers,
+    timeoutSeconds
+  };
+}
+
+function findCompatibleResumeModel(entry: RunStartedPoolEntry, role: "generation" | "judge"): ModelCatalogEntry | null {
+  const catalog = loadModelCatalog(repoRoot);
+  const modelId = String(entry.model_id ?? "");
+  const direct = catalog.models.find((model) => (model.id === modelId || model.aliases.includes(modelId)) && modelSupportsRole(model, role));
+  if (direct) {
+    return direct;
+  }
+  const modelKey = comparableModelKey(String(entry.model ?? modelId));
+  return catalog.models.find((model) => modelSupportsRole(model, role) && comparableModelKey(model.model) === modelKey) ?? null;
 }
 
 function registryEntry(entry: JudgeValidationRegistryEntry): JudgeValidationRegistryEntry {
