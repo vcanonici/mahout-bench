@@ -1,6 +1,6 @@
 {
   "name": "mahout-bench",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI benchmark for measuring and mitigating sycophancy in LLMs. Supports multi-provider execution, configurable judges, and long-running evaluation campaigns.",
   "private": false,
   "type": "module",

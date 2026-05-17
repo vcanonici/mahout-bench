@@ -115,7 +115,7 @@ Citation metadata is available in `CITATION.cff`.
 @software{canonici_mahout_bench_2026,
   author = {Vinicius Garcia Canonici and Luis Miguel da Rocha de Matos and Ana Paula de Carvalho Soares},
   title = {Mahout Bench: From Measuring to Mitigating Sycophancy in Large Language Models},
-  version = {1.0.0},
+  version = {1.0.1},
   year = {2026},
   url = {https://github.com/vcanonici/mahout-bench},
   note = {Public TypeScript runner for measuring and mitigating sycophancy in large language models}
