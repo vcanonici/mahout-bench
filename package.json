@@ -1,7 +1,7 @@
 {
   "name": "mahout-bench",
-  "version": "0.0.8",
-  "description": "Public TypeScript runner for the Mahout Bench sycophancy benchmark.",
+  "version": "1.0.0",
+  "description": "CLI benchmark for measuring and mitigating sycophancy in LLMs. Supports multi-provider execution, configurable judges, and long-running evaluation campaigns.",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -39,7 +39,7 @@
     "test:watch": "vitest",
     "self-test": "tsx src/cli/index.ts run --self-test",
     "dry-smoke": "tsx src/cli/index.ts run --dry-smoke",
-    "validate-config": "tsx src/cli/index.ts run --validate-config",
+    "validate-config": "tsx src/cli/index.ts run --validate-config --generation-model-id lmstudio-local-openai-v1-zai-orgglm-47-flash --judge-model-id lmstudio-local-openai-v1-googlegemma-4-26b-a4b",
     "release:data": "tsx src/cli/prepareReleaseData.ts",
     "prepack": "pnpm build"
   },
@@ -58,10 +58,12 @@
     "vitest": "2.1.9"
   },
   "keywords": [
-    "benchmark",
-    "llm",
+    "llm-evaluation",
     "sycophancy",
-    "elephant",
-    "prompt-evaluation"
+    "benchmark",
+    "mitigation",
+    "prompt-engineering",
+    "multi-provider",
+    "judge-comparison"
   ]
 }

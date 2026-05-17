@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import {
   DEFAULT_JUDGE_CONFIG,
   DEFAULT_JUDGE_VALIDATIONS_REGISTRY,
+  DEFAULT_PROFILES_ROOT,
   type BenchmarkArgs,
   type GenerationPoolRequest,
   type JudgeValidationRegistryEntry,
@@ -21,7 +22,8 @@ import {
   loadModelCatalog,
   loadProfiles,
   loadProviderCatalog,
-  modelSupportsRole
+  modelSupportsRole,
+  parseProfileOrder
 } from "../config/loadConfig.js";
 import { defaultTimeoutForProvider, defaultWorkersForProvider } from "../config/generationPool.js";
 import { formatDiscoverySummary, refreshAvailableModelsBestEffort, type ModelDiscoveryResult } from "../config/modelDiscovery.js";
@@ -151,7 +153,7 @@ export async function main(): Promise<number> {
 }
 
 async function buildStartArgs(rl: readline.Interface): Promise<BenchmarkArgs> {
-  const profileRoot = await chooseProfileRoot(rl);
+  const profileRoot = defaultProfileRootChoice();
   const profiles = await chooseProfiles(rl, profileRoot);
   const generationModel = await chooseModel(rl, "generation");
   const generationPool = await chooseGenerationPool(rl, generationModel);
@@ -186,7 +188,7 @@ async function buildStartArgs(rl: readline.Interface): Promise<BenchmarkArgs> {
 async function buildResumeArgs(rl: readline.Interface): Promise<BenchmarkArgs> {
   const resumeMode = resumeModeForChoice(await choose(rl, "Resume mode", resumeModeChoices()));
   const run = await chooseResumableBenchRun(rl);
-  const profileRoot = run.started.profiles_root ?? (await chooseProfileRoot(rl)).root;
+  const profileRoot = run.started.profiles_root ?? DEFAULT_PROFILES_ROOT;
   const profiles = parseRunProfiles(run.started);
   const marginOfError = run.started.margin_of_error ?? await chooseMarginOfError(rl, profileRoot, profiles);
   const generationPool = remapResumePoolToCurrentCatalog(run.started.generation_pool ?? [], "generation");
@@ -418,6 +420,15 @@ async function chooseProfileRoot(rl: readline.Interface): Promise<ProfileRootCho
   const labels = roots.map((entry) => `${entry.root} (${entry.profiles.join(", ")})`);
   const selected = await choose(rl, "Profiles folder", labels);
   return roots[labels.indexOf(selected)]!;
+}
+
+export function defaultProfileRootChoice(): ProfileRootChoice {
+  const roots = findProfileRoots();
+  const root = roots.find((entry) => entry.root === DEFAULT_PROFILES_ROOT);
+  if (!root) {
+    throw new Error(`Default profile TOMLs not found under ${DEFAULT_PROFILES_ROOT}`);
+  }
+  return root;
 }
 
 async function chooseProfiles(rl: readline.Interface, root: ProfileRootChoice): Promise<string[]> {
@@ -785,13 +796,28 @@ function findProfileRoots(): ProfileRootChoice[] {
       if (!fs.statSync(absolute).isDirectory()) {
         return null;
       }
-      const profiles = fs.readdirSync(absolute)
+      const root = path.join("config", entry);
+      const discoveredProfiles = fs.readdirSync(absolute)
         .filter((file) => file.endsWith(".toml") && file !== "profiles.toml")
         .map((file) => path.basename(file, ".toml"))
         .sort();
+      const profiles = orderedProfiles(root, discoveredProfiles);
       return profiles.length > 0 ? { root: path.join("config", entry), profiles } : null;
     })
     .filter((entry): entry is ProfileRootChoice => entry !== null);
+}
+
+function orderedProfiles(root: string, discoveredProfiles: string[]): string[] {
+  try {
+    const { order } = parseProfileOrder(repoRoot, root);
+    const discovered = new Set(discoveredProfiles);
+    return [
+      ...order.filter((profile) => discovered.has(profile)),
+      ...discoveredProfiles.filter((profile) => !order.includes(profile))
+    ];
+  } catch {
+    return discoveredProfiles;
+  }
 }
 
 async function refreshModelCatalog(): Promise<ModelDiscoveryResult> {

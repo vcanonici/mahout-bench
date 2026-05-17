@@ -5,6 +5,7 @@ import {
   benchmarkMarginOfErrorForChoice,
   benchmarkPrecisionChoices,
   buildModelChoiceRows,
+  defaultProfileRootChoice,
   dualLmStudioPoolEntries,
   formatModelChoiceTable,
   remapResumePoolToCurrentCatalog,
@@ -216,6 +217,13 @@ describe("TUI model choice formatting", () => {
 
   it("offers resume mode before selecting a run", () => {
     expect(resumeModeChoices()).toEqual(["fast resume", "checked resume"]);
+  });
+
+  it("uses config/profiles as the normal TUI profile source", () => {
+    expect(defaultProfileRootChoice()).toEqual({
+      root: "config/profiles",
+      profiles: ["Felix-V", "Felix-P", "Felix-A"]
+    });
   });
 
   it("builds a dual LMS pool for matching local and remote models", () => {

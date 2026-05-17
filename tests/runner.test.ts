@@ -19,29 +19,32 @@ import {
   type RunContext
 } from "../src/contracts/autobench.js";
 import {
+  DEFAULT_GENERATION_INFERENCE,
+  DEFAULT_JUDGE_INFERENCE,
   loadModelCatalog,
   enabledDatasets,
   loadProfiles,
   loadProviderCatalog,
   parseJudge,
+  parseProfile,
   parseProfileOrder,
   resolveInferenceFromModelCatalog
 } from "../src/config/loadConfig.js";
 import { parseGenerationPoolJson, resolveGenerationPool } from "../src/config/generationPool.js";
 import { runGenerationQueue } from "../src/generation/generationScheduler.js";
-import { nextSocialCandidateBatch } from "../src/generation/socialGeneration.js";
+import { createCanonicalSocialProgressTracker, nextSocialCandidateBatch } from "../src/generation/socialGeneration.js";
 import { archiveExistingJudgeArtifacts, judgeArtifactPaths, validateExistingJudgeInputs } from "../src/judging/judgeArtifacts.js";
 import { runJudgePreflight } from "../src/judging/judgeScoring.js";
 import { generationUnitKey, judgeUnitKey, readGenerationResult, readJudgeLabel, writeGenerationResult, writeJudgeLabel } from "../src/pipeline/checkpoint.js";
 import { metricsForDataset } from "../src/judging/judgePrompts.js";
-import { buildExtraBody, buildJudgeResponseFormat, buildLmStudioNativeBody, isProviderLimitResponse } from "../src/inference/chatClient.js";
+import { buildExtraBody, buildJudgeResponseFormat, buildLmStudioNativeBody, buildOpenAiChatBody, isProviderLimitResponse } from "../src/inference/chatClient.js";
 import { runDrySmoke, runSelfTest, validateConfigCli } from "../src/pipeline/benchmarkRunner.js";
 import { reconstructResumeGenerationState } from "../src/pipeline/resumeState.js";
 import { writeResults } from "../src/reporting/resultsReport.js";
 import { TerminalObserver } from "../src/runtime/terminalObserver.js";
 import { computeDoubleSidedScores, computeMoralScores, outputFileForMode, summaryForScoreFile } from "../src/scoring/scoreEngine.js";
 import { buildSampleManifest, estimateCalls, plannedOverallUnits, sampleTargetN } from "../src/sampling/samplePlanner.js";
-import { readCsvFile, readJsonFile, writeCsvJsonl, writeJson } from "../src/io/filesystem.js";
+import { readCsvFile, readJsonFile, sha256Text, writeCsvJsonl, writeJson } from "../src/io/filesystem.js";
 import { computeMetricSummary, computeSimilarityCounts } from "../src/validate_judge/metrics.js";
 import { loadElephantReference } from "../src/validate_judge/loadElephantReference.js";
 import {
@@ -89,6 +92,59 @@ describe("mahout-bench", () => {
     expect(judge.inference.model).toBe("google/gemma-4-26b-a4b");
   });
 
+  it("uses explicit TOML-first defaults when inference fields are absent", () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "mahout-config-defaults-"));
+    const profilePath = path.join(tempRoot, "Example.toml");
+    const judgePath = path.join(tempRoot, "config", "judge", "minimal.toml");
+    fs.mkdirSync(path.dirname(judgePath), { recursive: true });
+    fs.writeFileSync(profilePath, [
+      "[profile]",
+      'name = "Example"',
+      'benchmark_model = "example/model"',
+      "",
+      "[generation]",
+      "",
+      "[datasets.oeq]",
+      "enabled = true",
+      'file = "OEQ.csv"',
+      'prompt_column = "prompt"',
+      'task = "social"'
+    ].join("\n"), "utf8");
+    fs.writeFileSync(judgePath, [
+      "[judge]",
+      'model = "example/judge"',
+      "",
+      "[judge_prompts]"
+    ].join("\n"), "utf8");
+
+    const profile = parseProfile(profilePath);
+    const judge = parseJudge(tempRoot, "config/judge/minimal.toml");
+
+    expect(profile.generation).toMatchObject(DEFAULT_GENERATION_INFERENCE);
+    expect(Object.keys(profile.datasets)).toEqual(["oeq"]);
+    expect(judge.inference).toMatchObject(DEFAULT_JUDGE_INFERENCE);
+  });
+
+  it("uses the default benchmark dataset contract when profile datasets are omitted", () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "mahout-profile-datasets-"));
+    const profilePath = path.join(tempRoot, "Minimal.toml");
+    fs.writeFileSync(profilePath, [
+      "[profile]",
+      'name = "Minimal"',
+      "",
+      "[generation]",
+      'system_prompt = "system"'
+    ].join("\n"), "utf8");
+
+    const profile = parseProfile(profilePath);
+
+    expect(profile.datasetsDir).toBe("datasets/full_results");
+    expect(enabledDatasets(profile).map((dataset) => dataset.name)).toEqual(["oeq", "aita_yta", "aita_nta_og", "aita_nta_flip", "ss"]);
+    expect(profile.datasets.oeq).toMatchObject({ file: "OEQ.csv", promptColumn: "prompt", task: "social", baseline: 0.5 });
+    expect(profile.datasets.aita_nta_og).toMatchObject({ file: "AITA-NTA-OG.csv", promptColumn: "original_post", task: "moral_a", aitaBinary: true });
+    expect(profile.datasets.aita_nta_flip).toMatchObject({ file: "AITA-NTA-FLIP.csv", promptColumn: "flipped_story", task: "moral_b", aitaBinary: true });
+  });
+
   it("loads model/provider catalogs and resolves inference without changing profile hyperparameters", () => {
     const providers = loadProviderCatalog(repoRoot);
     const models = loadModelCatalog(repoRoot);
@@ -113,6 +169,16 @@ describe("mahout-bench", () => {
     expect(resolved.parallelism).toBe(1);
     expect(resolved.temperature).toBe(profile.generation.temperature);
     expect(resolved.systemPrompt).toBe(profile.generation.systemPrompt);
+  });
+
+  it("sends profile system prompts as OpenAI-compatible system messages", () => {
+    const profile = loadProfiles(repoRoot)[0]!;
+    const body = buildOpenAiChatBody(profile.generation, "user prompt", null);
+
+    expect(body.messages).toEqual([
+      { role: "system", content: profile.generation.systemPrompt },
+      { role: "user", content: "user prompt" }
+    ]);
   });
 
   it("resolves model catalog context length overrides", () => {
@@ -431,6 +497,23 @@ describe("mahout-bench", () => {
     expect(nextSocialCandidateBatch(shuffled, 3, 17, pool as never, false)).toHaveLength(8);
   });
 
+  it("advances reduced canonical social progress per accepted candidate", () => {
+    let stageValue = 0;
+    let overallValue = 0;
+    const tracker = createCanonicalSocialProgressTracker({
+      remainingTarget: 2,
+      stage: { advance: () => { stageValue += 1; } },
+      observer: { advanceOverall: () => { overallValue += 1; } }
+    });
+
+    expect(tracker.advanceIfAccepted(true)).toBe(true);
+    expect(tracker.advanceIfAccepted(false)).toBe(false);
+    expect(tracker.advanceIfAccepted(true)).toBe(true);
+    expect(tracker.advanceIfAccepted(true)).toBe(false);
+    expect(stageValue).toBe(2);
+    expect(overallValue).toBe(2);
+  });
+
   it("passes the offline self-test and config validation", () => {
     expect(runSelfTest()).toBe(0);
     if (!hasInstalledDataBundle) {
@@ -447,9 +530,9 @@ describe("mahout-bench", () => {
         judgeConfig: "config/judge/juiz.toml",
         outputRoot: "",
         skipLms: true,
-        generationModelId: "",
+        generationModelId: "lmstudio-local-openai-v1-zai-orgglm-47-flash",
         generationPool: [],
-        judgeModelId: "",
+        judgeModelId: "lmstudio-local-openai-v1-googlegemma-4-26b-a4b",
         judgePool: [],
         benchmarkName: "",
         marginOfError: null,
@@ -513,6 +596,8 @@ describe("mahout-bench", () => {
       generation_pool: [],
       judge_model_id: "judge",
       judge_pool: [],
+      generation_system_prompt_sha256: "",
+      generation_system_prompt_chars: 0,
       generation_inference: null,
       judge_inference: null,
       confidence: 0.95,
@@ -549,6 +634,8 @@ describe("mahout-bench", () => {
       generation_pool: [],
       judge_model_id: "lmstudio_native_liquid_lfm25_12b",
       judge_pool: [],
+      generation_system_prompt_sha256: "",
+      generation_system_prompt_chars: 0,
       generation_inference: null,
       judge_inference: null,
       confidence: 0.95,
@@ -592,6 +679,8 @@ describe("mahout-bench", () => {
     expect(manifest.moral_pair_ids).toEqual(["pair-a", "pair-b"]);
     expect(manifest.canonical_profile).toBe(reference!.name);
     expect(manifest.profile_order).toEqual(["Felix-V", "Felix-P", "Felix-A"]);
+    expect(manifest.generation_system_prompt_sha256).toBe(sha256Text(reference!.generation.systemPrompt));
+    expect(manifest.generation_system_prompt_chars).toBe(reference!.generation.systemPrompt.length);
   });
 
   it("estimates 10pp call counts from current datasets", () => {

@@ -14,7 +14,7 @@ import {
   type GenerationPoolManifestEntry,
   type SampleManifest
 } from "../contracts/autobench.js";
-import { stableSeedOffset, utcNowIso } from "../io/filesystem.js";
+import { sha256Text, stableSeedOffset, utcNowIso } from "../io/filesystem.js";
 
 export function sampleTargetN(population: number, sampling: SamplingConfig = defaultSampling()): number {
   if (population <= 0) {
@@ -61,6 +61,7 @@ export function buildSampleManifest(args: {
   moralIds: string[];
 }): SampleManifest {
   const { ctx, referenceProfile, socialIndices, datasetPopulations, moralIds } = args;
+  const systemPrompt = referenceProfile.generation.systemPrompt;
   const datasets: SampleManifest["datasets"] = {};
   for (const dataset of Object.values(referenceProfile.datasets).filter((item) => item.enabled)) {
     const population = datasetPopulations[dataset.name] ?? 0;
@@ -82,6 +83,8 @@ export function buildSampleManifest(args: {
     generation_pool: generationPoolManifest(args.generationPool),
     judge_model_id: ctx.judgeModelId,
     judge_pool: generationPoolManifest(args.judgePool),
+    generation_system_prompt_sha256: systemPrompt ? sha256Text(systemPrompt) : "",
+    generation_system_prompt_chars: systemPrompt.length,
     generation_inference: referenceProfile.generation,
     judge_inference: args.judgeInference,
     confidence: referenceProfile.sampling.confidence,

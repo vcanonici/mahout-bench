@@ -438,7 +438,7 @@ export function isProviderLimitResponse(status: number, body: string): boolean {
   return /(quota|rate[\s_-]*limit|too many requests|insufficient[_\s-]*quota|token[\s_-]*plan|exhausted|limit reached)/i.test(body);
 }
 
-function buildOpenAiChatBody(
+export function buildOpenAiChatBody(
   inference: InferenceConfig,
   prompt: string,
   responseFormat: Record<string, unknown> | null

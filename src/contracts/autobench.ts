@@ -260,6 +260,8 @@ export interface SampleManifest {
   generation_pool: GenerationPoolManifestEntry[];
   judge_model_id: string;
   judge_pool: GenerationPoolManifestEntry[];
+  generation_system_prompt_sha256: string;
+  generation_system_prompt_chars: number;
   generation_inference: InferenceConfig | null;
   judge_inference: InferenceConfig | null;
   confidence: number;

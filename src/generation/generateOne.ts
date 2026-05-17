@@ -37,6 +37,8 @@ export async function generateOne(args: {
   const prompt = formatGenerationPrompt(dataset, row, parser === YTA_NTA_PARSE);
   const rowId = row.id ?? rowIndex;
   const promptHash = sha256Text(prompt);
+  const systemPromptHash = inference.systemPrompt ? sha256Text(inference.systemPrompt) : "";
+  const systemPromptChars = inference.systemPrompt.length;
   const checkpointKey = generationUnitKey({ profileName: profile.name, datasetName: dataset.name, mode, rowIndex });
   const checkpointResult = readGenerationResult(ctx, checkpointKey);
   if (checkpointResult) {
@@ -66,6 +68,8 @@ export async function generateOne(args: {
         rowIndex,
         rowId,
         promptHash,
+        systemPromptHash,
+        systemPromptChars,
         attempt,
         attemptStarted,
         backend,
@@ -135,6 +139,8 @@ export async function generateOne(args: {
         rowIndex,
         rowId,
         promptHash,
+        systemPromptHash,
+        systemPromptChars,
         attempt,
         attemptStarted,
         backend,
@@ -189,6 +195,8 @@ function appendGenerationTrace(
     rowIndex: number | string;
     rowId: unknown;
     promptHash: string;
+    systemPromptHash: string;
+    systemPromptChars: number;
     attempt: number;
     attemptStarted: number;
     backend: GenerationPoolBackend | undefined;
@@ -210,6 +218,8 @@ function appendGenerationTrace(
     row_index: args.rowIndex,
     row_id: args.rowId,
     prompt_sha256: args.promptHash,
+    system_prompt_sha256: args.systemPromptHash,
+    system_prompt_chars: args.systemPromptChars,
     attempt: args.attempt,
     backend_id: args.backend?.backendId ?? null,
     model_id: args.backend?.modelId ?? null,
@@ -239,6 +249,8 @@ function appendGenerationException(
     rowIndex: number | string;
     rowId: unknown;
     promptHash: string;
+    systemPromptHash: string;
+    systemPromptChars: number;
     attempt: number;
     attemptStarted: number;
     backend: GenerationPoolBackend | undefined;
@@ -256,6 +268,8 @@ function appendGenerationException(
     row_index: args.rowIndex,
     row_id: args.rowId,
     prompt_sha256: args.promptHash,
+    system_prompt_sha256: args.systemPromptHash,
+    system_prompt_chars: args.systemPromptChars,
     attempt: args.attempt,
     backend_id: args.backend?.backendId ?? null,
     model_id: args.backend?.modelId ?? null,

@@ -50,6 +50,11 @@ export async function canonicalSocialGeneration(args: {
   try {
     while (acceptedIndices.length < targetN) {
       const batch = nextSocialCandidateBatch(shuffled, cursor, targetN - acceptedIndices.length, generationPool, isFullBench);
+      const progressTracker = createCanonicalSocialProgressTracker({
+        remainingTarget: targetN - acceptedIndices.length,
+        stage,
+        observer
+      });
       cursor += batch.length;
       if (batch.length === 0) {
         await handleCanonicalSocialFailure(dataset.name, acceptedIndices.length, observer);
@@ -57,7 +62,7 @@ export async function canonicalSocialGeneration(args: {
       }
       const generated = await runGenerationQueue(batch, generationPool, async (rowIndex, backend) => {
         const row = rows[rowIndex]!;
-        return generateOne({
+        const result = await generateOne({
           ctx,
           profile,
           dataset,
@@ -69,6 +74,10 @@ export async function canonicalSocialGeneration(args: {
           observer,
           progress: isFullBench ? stage : undefined
         });
+        if (!isFullBench) {
+          progressTracker.advanceIfAccepted(result.ok);
+        }
+        return result;
       });
       for (const item of generated) {
         const rowIndex = item.item;
@@ -92,10 +101,6 @@ export async function canonicalSocialGeneration(args: {
         if (acceptedIndices.length < targetN) {
           acceptedIndices.push(rowIndex);
           records.push(makeResponseRecord(row, profile, rowIndex, item.result, "responses", "ok"));
-          if (!isFullBench) {
-            stage.advance();
-            observer.advanceOverall();
-          }
         } else {
           quarantine(ctx, "canonical_social_extra_candidate_discarded", observer, {
             profile: profile.name,
@@ -194,6 +199,29 @@ export function nextSocialCandidateBatch(
   const workerCount = Math.max(1, totalGenerationWorkers(generationPool));
   const batchSize = Math.max(workerCount, Math.min(workerCount * MAX_ROW_CANDIDATES, remainingTarget));
   return shuffled.slice(cursor, Math.min(shuffled.length, cursor + batchSize));
+}
+
+/**
+ * Tracks live progress for reduced canonical social sampling.
+ */
+export function createCanonicalSocialProgressTracker(args: {
+  remainingTarget: number;
+  stage: Pick<ReturnType<TerminalObserver["startStage"]>, "advance">;
+  observer: Pick<TerminalObserver, "advanceOverall">;
+}): { advanceIfAccepted: (isAccepted: boolean) => boolean } {
+  let accepted = 0;
+  const limit = Math.max(0, args.remainingTarget);
+  return {
+    advanceIfAccepted: (isAccepted: boolean): boolean => {
+      if (!isAccepted || accepted >= limit) {
+        return false;
+      }
+      accepted += 1;
+      args.stage.advance();
+      args.observer.advanceOverall();
+      return true;
+    }
+  };
 }
 
 async function handleCanonicalSocialFailure(datasetName: string, slot: number, observer: TerminalObserver): Promise<void> {

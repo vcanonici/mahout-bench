@@ -38,6 +38,76 @@ import { resolveDataRoot, resolveDataRootForRepo } from "../runtime/paths.js";
 
 type TomlTable = Record<string, unknown>;
 
+const DEFAULT_PROFILE_DATASETS: Record<string, Omit<DatasetConfig, "promptPrefix" | "promptSuffix">> = {
+  oeq: {
+    name: "oeq",
+    enabled: true,
+    file: "OEQ.csv",
+    promptColumn: "prompt",
+    task: SOCIAL_TASK,
+    aitaBinary: false,
+    baseline: 0.5
+  },
+  aita_yta: {
+    name: "aita_yta",
+    enabled: true,
+    file: "AITA-YTA.csv",
+    promptColumn: "prompt",
+    task: SOCIAL_TASK,
+    aitaBinary: false,
+    baseline: 0.5
+  },
+  aita_nta_og: {
+    name: "aita_nta_og",
+    enabled: true,
+    file: "AITA-NTA-OG.csv",
+    promptColumn: "original_post",
+    task: MORAL_A_TASK,
+    aitaBinary: true,
+    baseline: null
+  },
+  aita_nta_flip: {
+    name: "aita_nta_flip",
+    enabled: true,
+    file: "AITA-NTA-FLIP.csv",
+    promptColumn: "flipped_story",
+    task: MORAL_B_TASK,
+    aitaBinary: true,
+    baseline: null
+  },
+  ss: {
+    name: "ss",
+    enabled: true,
+    file: "SS.csv",
+    promptColumn: "sentence",
+    task: SOCIAL_TASK,
+    aitaBinary: false,
+    baseline: 0.5
+  }
+};
+
+export const DEFAULT_GENERATION_INFERENCE = {
+  temperature: 0.7,
+  topP: 1,
+  maxTokens: 4096,
+  contextLength: 16384,
+  parallelism: 1,
+  thinkingEnabled: true,
+  reasoningEffort: "low",
+  includeReasoningParameter: true
+} as const;
+
+export const DEFAULT_JUDGE_INFERENCE = {
+  temperature: 0,
+  topP: 1,
+  maxTokens: 256,
+  contextLength: 10000,
+  parallelism: 1,
+  thinkingEnabled: false,
+  reasoningEffort: "low",
+  includeReasoningParameter: true
+} as const;
+
 export function loadProfiles(repoRoot: string, profilesRoot = DEFAULT_PROFILES_ROOT, profileNames: string[] = []): ProfileConfig[] {
   const orderedNames = profileNames.length > 0 ? profileNames : PROFILE_ORDER.map((name) => String(name));
   return orderedNames.map((profileName) => {
@@ -69,14 +139,14 @@ export function parseProfile(profilePath: string): ProfileConfig {
     apiKey: apiKeyValue(generationSection, profilePath, "lm-studio"),
     apiKeyFile: stringValue(generationSection.api_key_file, ""),
     model: benchmarkModel,
-    temperature: floatValue(generationSection.temperature, "generation.temperature", 0.7),
-    topP: floatValue(generationSection.top_p, "generation.top_p", 1),
-    maxTokens: intValue(generationSection.max_tokens, "generation.max_tokens", 4096),
-    contextLength: intValue(generationSection.context_length, "generation.context_length", 16384),
-    parallelism: positiveIntValue(generationSection.parallelism, "generation.parallelism", 1),
-    thinkingEnabled: boolValue(generationSection.thinking_enabled, "generation.thinking_enabled", true),
-    reasoningEffort: stringValue(generationSection.reasoning_effort, "low"),
-    includeReasoningParameter: boolValue(generationSection.include_reasoning_parameter, "generation.include_reasoning_parameter", true),
+    temperature: floatValue(generationSection.temperature, "generation.temperature", DEFAULT_GENERATION_INFERENCE.temperature),
+    topP: floatValue(generationSection.top_p, "generation.top_p", DEFAULT_GENERATION_INFERENCE.topP),
+    maxTokens: intValue(generationSection.max_tokens, "generation.max_tokens", DEFAULT_GENERATION_INFERENCE.maxTokens),
+    contextLength: intValue(generationSection.context_length, "generation.context_length", DEFAULT_GENERATION_INFERENCE.contextLength),
+    parallelism: positiveIntValue(generationSection.parallelism, "generation.parallelism", DEFAULT_GENERATION_INFERENCE.parallelism),
+    thinkingEnabled: boolValue(generationSection.thinking_enabled, "generation.thinking_enabled", DEFAULT_GENERATION_INFERENCE.thinkingEnabled),
+    reasoningEffort: stringValue(generationSection.reasoning_effort, DEFAULT_GENERATION_INFERENCE.reasoningEffort),
+    includeReasoningParameter: boolValue(generationSection.include_reasoning_parameter, "generation.include_reasoning_parameter", DEFAULT_GENERATION_INFERENCE.includeReasoningParameter),
     systemPrompt: stringValue(generationSection.system_prompt, ""),
     quotaLabel: stringValue(generationSection.quota_label, ""),
     quotaMaxRequests: optionalIntValue(generationSection.quota_max_requests, "generation.quota_max_requests"),
@@ -85,23 +155,7 @@ export function parseProfile(profilePath: string): ProfileConfig {
 
   const globalPrefix = stringValue(promptsSection.prefix, "");
   const globalSuffix = stringValue(promptsSection.suffix, "");
-  const datasets: Record<string, DatasetConfig> = {};
-  for (const [name, value] of Object.entries(datasetsSection)) {
-    if (!isRecord(value)) {
-      throw new Error(`datasets.${name} must be a table`);
-    }
-    datasets[name] = {
-      name,
-      enabled: boolValue(value.enabled, `datasets.${name}.enabled`, true),
-      file: stringValue(value.file, ""),
-      promptColumn: stringValue(value.prompt_column, "prompt"),
-      task: stringValue(value.task, SOCIAL_TASK),
-      aitaBinary: boolValue(value.aita_binary, `datasets.${name}.aita_binary`, false),
-      baseline: value.baseline === undefined || value.baseline === null ? null : floatValue(value.baseline, `datasets.${name}.baseline`, 0),
-      promptPrefix: stringValue(value.prefix, globalPrefix),
-      promptSuffix: stringValue(value.suffix, globalSuffix)
-    };
-  }
+  const datasets = parseProfileDatasets(datasetsSection, globalPrefix, globalSuffix);
 
   return {
     name: profileName,
@@ -112,10 +166,47 @@ export function parseProfile(profilePath: string): ProfileConfig {
       confidence: floatValue(samplingSection.confidence, "sampling.confidence", DEFAULT_CONFIDENCE),
       marginOfError: floatValue(samplingSection.margin_of_error, "sampling.margin_of_error", DEFAULT_MARGIN_OF_ERROR)
     },
-    datasetsDir: stringValue(pathsSection.datasets_dir, "datasets"),
+    datasetsDir: stringValue(pathsSection.datasets_dir, "datasets/full_results"),
     seed: intValue(samplingSection.seed, "sampling.seed", 42),
     datasets
   };
+}
+
+function parseProfileDatasets(datasetsSection: TomlTable, globalPrefix: string, globalSuffix: string): Record<string, DatasetConfig> {
+  if (Object.keys(datasetsSection).length === 0) {
+    return Object.fromEntries(
+      Object.entries(DEFAULT_PROFILE_DATASETS).map(([name, dataset]) => [
+        name,
+        {
+          ...dataset,
+          promptPrefix: globalPrefix,
+          promptSuffix: globalSuffix
+        }
+      ])
+    );
+  }
+
+  const datasets: Record<string, DatasetConfig> = {};
+  for (const [name, value] of Object.entries(datasetsSection)) {
+    if (!isRecord(value)) {
+      throw new Error(`datasets.${name} must be a table`);
+    }
+    const defaults = DEFAULT_PROFILE_DATASETS[name];
+    datasets[name] = {
+      name,
+      enabled: boolValue(value.enabled, `datasets.${name}.enabled`, defaults?.enabled ?? true),
+      file: stringValue(value.file, defaults?.file ?? ""),
+      promptColumn: stringValue(value.prompt_column, defaults?.promptColumn ?? "prompt"),
+      task: stringValue(value.task, defaults?.task ?? SOCIAL_TASK),
+      aitaBinary: boolValue(value.aita_binary, `datasets.${name}.aita_binary`, defaults?.aitaBinary ?? false),
+      baseline: value.baseline === undefined || value.baseline === null
+        ? defaults?.baseline ?? null
+        : floatValue(value.baseline, `datasets.${name}.baseline`, 0),
+      promptPrefix: stringValue(value.prefix, globalPrefix),
+      promptSuffix: stringValue(value.suffix, globalSuffix)
+    };
+  }
+  return datasets;
 }
 
 export function parseProfileOrder(repoRoot: string, profilesRoot: string): { order: string[]; canonical: string } {
@@ -221,14 +312,14 @@ export function parseJudge(repoRoot: string, judgeConfigPath = DEFAULT_JUDGE_CON
       apiKey: apiKeyValue(judgeSection, filePath, "lm-studio"),
       apiKeyFile: stringValue(judgeSection.api_key_file, ""),
       model,
-      temperature: floatValue(judgeSection.temperature, "judge.temperature", 0.7),
-      topP: floatValue(judgeSection.top_p, "judge.top_p", 1),
-      maxTokens: intValue(judgeSection.max_tokens, "judge.max_tokens", 4096),
-      contextLength: intValue(judgeSection.context_length, "judge.context_length", 16384),
-      parallelism: positiveIntValue(judgeSection.parallelism, "judge.parallelism", 1),
-      thinkingEnabled: boolValue(judgeSection.thinking_enabled, "judge.thinking_enabled", false),
-      reasoningEffort: stringValue(judgeSection.reasoning_effort, "low"),
-      includeReasoningParameter: boolValue(judgeSection.include_reasoning_parameter, "judge.include_reasoning_parameter", true),
+      temperature: floatValue(judgeSection.temperature, "judge.temperature", DEFAULT_JUDGE_INFERENCE.temperature),
+      topP: floatValue(judgeSection.top_p, "judge.top_p", DEFAULT_JUDGE_INFERENCE.topP),
+      maxTokens: intValue(judgeSection.max_tokens, "judge.max_tokens", DEFAULT_JUDGE_INFERENCE.maxTokens),
+      contextLength: intValue(judgeSection.context_length, "judge.context_length", DEFAULT_JUDGE_INFERENCE.contextLength),
+      parallelism: positiveIntValue(judgeSection.parallelism, "judge.parallelism", DEFAULT_JUDGE_INFERENCE.parallelism),
+      thinkingEnabled: boolValue(judgeSection.thinking_enabled, "judge.thinking_enabled", DEFAULT_JUDGE_INFERENCE.thinkingEnabled),
+      reasoningEffort: stringValue(judgeSection.reasoning_effort, DEFAULT_JUDGE_INFERENCE.reasoningEffort),
+      includeReasoningParameter: boolValue(judgeSection.include_reasoning_parameter, "judge.include_reasoning_parameter", DEFAULT_JUDGE_INFERENCE.includeReasoningParameter),
       systemPrompt: stringValue(judgeSection.system_prompt, ""),
       quotaLabel: stringValue(judgeSection.quota_label, ""),
       quotaMaxRequests: optionalIntValue(judgeSection.quota_max_requests, "judge.quota_max_requests"),
