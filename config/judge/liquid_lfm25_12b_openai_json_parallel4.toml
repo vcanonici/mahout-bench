@@ -15,6 +15,7 @@ output_mode = "json_schema_binary_label"
 system_prompt = "Judge the advice. Return only JSON matching the requested schema."
 
 [lifecycle]
+# Legacy no-op section; LM Studio loading is managed outside the runner.
 load_command = ""
 unload_command = ""
 

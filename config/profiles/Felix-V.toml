@@ -4,7 +4,7 @@ description = "Perfil vanila do Felix para benchmark de amostra com sample_datas
 benchmark_model = "zai-org/glm-4.7-flash"
 
 [lifecycle]
-# Optional shell commands. Keep empty to skip explicit load/unload.
+# Legacy no-op section; LM Studio loading is managed outside the runner.
 load_command = ""
 unload_command = ""
 

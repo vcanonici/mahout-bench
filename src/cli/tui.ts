@@ -280,13 +280,13 @@ async function chooseJudgePool(
     return single;
   }
   if (shouldPreferDualLmStudio) {
-    process.stdout.write("Generation pool usa Dual-LMS; judge pool tambem vai usar Dual-LMS local+remote.\n");
+    process.stdout.write("Generation pool usa Dual-LMS; judge pool tambem vai usar par LM Studio.\n");
     process.stdout.write(formatGenerationPool(dual).replace("Generation pool", "Judge pool"));
     return dual;
   }
   const choice = await choose(rl, "Judge pool", [
     "single judge backend",
-    `dual LMS local+remote (${dual.map((entry) => entry.modelId).join(", ")})`
+    `dual LMS provider pair (${dual.map((entry) => entry.modelId).join(", ")})`
   ]);
   const pool = choice === "single judge backend" ? single : dual;
   process.stdout.write(formatGenerationPool(pool).replace("Generation pool", "Judge pool"));
@@ -311,7 +311,7 @@ function addDualLmStudioEntries(
 ): void {
   const entries = dualLmStudioPoolEntries(compatible, providers, selectedModel);
   if (entries.length < 2) {
-    process.stdout.write("Nao encontrei par local+remote LM Studio compativel para esse modelo.\n");
+    process.stdout.write("Nao encontrei par LM Studio compativel para esse modelo.\n");
     return;
   }
   for (const entry of entries) {
@@ -336,14 +336,13 @@ export function dualLmStudioPoolEntries(
     return provider?.provider === "lmstudio" && comparableModelKey(model.model) === targetKey;
   });
   const selectedProvider = providerById.get(selectedModel.providerId);
-  const selectedIsLocal = selectedProvider?.id.includes("local") ?? false;
-  const selectedIsRemote = selectedProvider?.id.includes("remote") ?? false;
-  const local = selectedIsLocal
+  const selectedSlot = lmStudioProviderSlot(selectedProvider?.id ?? "");
+  const local = selectedSlot === "primary"
     ? selectedModel
-    : matches.find((model) => providerById.get(model.providerId)?.id.includes("local"));
-  const remote = selectedIsRemote
+    : matches.find((model) => lmStudioProviderSlot(providerById.get(model.providerId)?.id ?? "") === "primary");
+  const remote = selectedSlot === "secondary"
     ? selectedModel
-    : matches.find((model) => providerById.get(model.providerId)?.id.includes("remote"));
+    : matches.find((model) => lmStudioProviderSlot(providerById.get(model.providerId)?.id ?? "") === "secondary");
   return [local, remote].filter((model): model is ModelCatalogEntry => Boolean(model)).map((model) => defaultPoolEntry(model, providers));
 }
 
@@ -360,10 +359,20 @@ export function generationPoolUsesDualLmStudio(pool: GenerationPoolRequest[]): b
     if (provider?.provider !== "lmstudio") {
       continue;
     }
-    hasLocal ||= provider.id.includes("local");
-    hasRemote ||= provider.id.includes("remote");
+    hasLocal ||= lmStudioProviderSlot(provider.id) === "primary";
+    hasRemote ||= lmStudioProviderSlot(provider.id) === "secondary";
   }
   return hasLocal && hasRemote;
+}
+
+function lmStudioProviderSlot(providerId: string): "primary" | "secondary" | null {
+  if (providerId.includes("host1") || providerId.includes("local")) {
+    return "primary";
+  }
+  if (providerId.includes("host2") || providerId.includes("remote")) {
+    return "secondary";
+  }
+  return null;
 }
 
 function comparableModelKey(model: string): string {

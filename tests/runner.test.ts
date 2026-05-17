@@ -35,14 +35,6 @@ import { metricsForDataset } from "../src/judging/judgePrompts.js";
 import { buildExtraBody, buildJudgeResponseFormat, buildLmStudioNativeBody, isProviderLimitResponse } from "../src/inference/chatClient.js";
 import { runDrySmoke, runSelfTest, validateConfigCli } from "../src/pipeline/benchmarkRunner.js";
 import { writeResults } from "../src/reporting/resultsReport.js";
-import {
-  isLocalLmStudioBaseUrl,
-  lmStudioSdkBaseUrl,
-  loadedModelContextLength,
-  loadedModelMatches,
-  localLmStudioBackendsNotReadyForSkipLms,
-  localLmStudioLoadConfig
-} from "../src/runtime/lmsLifecycle.js";
 import { TerminalObserver } from "../src/runtime/terminalObserver.js";
 import { computeDoubleSidedScores, computeMoralScores, outputFileForMode, summaryForScoreFile } from "../src/scoring/scoreEngine.js";
 import { buildSampleManifest, estimateCalls, plannedOverallUnits, sampleTargetN } from "../src/sampling/samplePlanner.js";
@@ -193,20 +185,18 @@ describe("mahout-bench", () => {
     expect(lmStudioModels.every((model) => model.parallelism === 1)).toBe(true);
   });
 
-  it("uses SDK-only local LM Studio load defaults for flash attention and q4 KV cache", () => {
-    const config = localLmStudioLoadConfig(128000);
-
-    expect(config).toMatchObject({
-      contextLength: 128000,
-      gpu: { ratio: "max" },
-      gpuStrictVramCap: true,
-      flashAttention: true,
-      offloadKVCacheToGpu: true,
-      llamaKCacheQuantizationType: "q4_0",
-      llamaVCacheQuantizationType: "q4_0"
+  it("treats LM Studio as a passive HTTP provider", () => {
+    const profile = loadProfiles(repoRoot, "config/profiles", ["Felix-V"])[0]!;
+    const [backend] = resolveGenerationPool({
+      repoRoot,
+      base: profile.generation,
+      generationModelId: "",
+      generationPool: [{ modelId: "lmstudio-local-openai-v1-zai-orgglm-47-flash", workers: 1, timeoutSeconds: 900 }]
     });
-    expect(lmStudioSdkBaseUrl("http://127.0.0.1:1234/v1")).toBe("ws://127.0.0.1:1234");
-    expect(lmStudioSdkBaseUrl("https://localhost:8080/api/v1/models")).toBe("wss://localhost:8080");
+
+    expect(backend?.inference.apiMode).toBe("openai_chat_completions");
+    expect(backend?.inference.apiBaseUrl).toBe("http://127.0.0.1:1234/v1");
+    expect(buildExtraBody(backend!.inference)).toMatchObject({ context_length: 128000 });
   });
 
   it("discovers new LM Studio models without mutating existing catalog entries", async () => {
@@ -815,37 +805,6 @@ describe("mahout-bench", () => {
     const archiveRoot = archiveExistingJudgeArtifacts(ctx, new TerminalObserver(false));
     expect(archiveRoot).toBeTruthy();
     expect(fs.existsSync(path.join(archiveRoot!, reference.name, "oeq", "scores.csv"))).toBe(true);
-  });
-
-  it("keeps LMS model helpers deterministic", () => {
-    const entry = {
-      identifier: "model-a",
-      modelKey: "other",
-      contextLength: "8192"
-    };
-    expect(loadedModelMatches(entry, "model-a")).toBe(true);
-    expect(loadedModelMatches(entry, "missing")).toBe(false);
-    expect(loadedModelContextLength(entry)).toBe(8192);
-    expect(loadedModelContextLength({ contextLength: "bad" })).toBeNull();
-    expect(isLocalLmStudioBaseUrl("http://127.0.0.1:1234/v1")).toBe(true);
-    expect(isLocalLmStudioBaseUrl("http://203.0.113.10:1234/v1")).toBe(false);
-  });
-
-  it("detects unloaded local LMS backends before skip-lms runs", () => {
-    const profile = loadProfiles(repoRoot, "config/profiles", ["Felix-V"])[0]!;
-    const [backend] = resolveGenerationPool({
-      repoRoot,
-      base: profile.generation,
-      generationModelId: "",
-      generationPool: [{ modelId: "lmstudio-local-openai-v1-zai-orgglm-47-flash", workers: 1, timeoutSeconds: 900 }]
-    });
-    expect(localLmStudioBackendsNotReadyForSkipLms([backend!], [{ identifier: "zai-org/glm-4.7-flash", contextLength: 128000 }])).toEqual([]);
-    expect(localLmStudioBackendsNotReadyForSkipLms([backend!], [{ identifier: "other-model" }])).toEqual([
-      { backend, reason: "model is not loaded" }
-    ]);
-    expect(localLmStudioBackendsNotReadyForSkipLms([backend!], [{ identifier: "zai-org/glm-4.7-flash", contextLength: 4096 }])).toEqual([
-      { backend, reason: "context_length 4096 < expected 128000" }
-    ]);
   });
 
   it("builds LM Studio native chat bodies without changing inference hyperparameters", () => {

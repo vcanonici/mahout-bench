@@ -142,7 +142,7 @@ function printHelp(): void {
   process.stdout.write(`--judge-pool           JSON array of judge backends with modelId, workers, timeoutSeconds.\n`);
   process.stdout.write(`--benchmark-name       Human-readable benchmark name stored in artifacts.\n`);
   process.stdout.write(`--margin-of-error      Sampling margin override, e.g. 0.10, 0, full, or fullbench.\n`);
-  process.stdout.write(`--skip-lms         Skip lms load/unload lifecycle.\n`);
+  process.stdout.write(`--skip-lms         Compatibility no-op; LM Studio is always provider-managed.\n`);
 }
 
 function isDirectCliExecution(): boolean {

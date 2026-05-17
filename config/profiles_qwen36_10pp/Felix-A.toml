@@ -4,6 +4,7 @@ description = "Perfil assertivo do Felix para benchmark Qwen 3.6 10pp."
 benchmark_model = "qwen/qwen3.6-35b-a3b"
 
 [lifecycle]
+# Legacy no-op section; LM Studio loading is managed outside the runner.
 load_command = ""
 unload_command = ""
 

@@ -17,7 +17,6 @@ import { BenchmarkAbort } from "../pipeline/benchmarkAbort.js";
 import { logEvent, renderError, roundSeconds, sleep } from "../pipeline/runContext.js";
 import { computeDoubleSidedScores, computeMoralScores, outputFileForMode, summaryForScoreFile } from "../scoring/scoreEngine.js";
 import { interactiveMenuWithObserver, type TerminalObserver } from "../runtime/terminalObserver.js";
-import { hasLmsCli, isLocalLmStudioBaseUrl, loadLmsModels, loadedModelMatches } from "../runtime/lmsLifecycle.js";
 import { buildJudgePrompt, metricsForDataset, parserForJudgeOutputMode } from "./judgePrompts.js";
 import { judgeUnitKey, readJudgeLabel, writeJudgeLabel } from "../pipeline/checkpoint.js";
 import { handleProviderLimit } from "../pipeline/providerLimit.js";
@@ -185,12 +184,6 @@ export async function runJudgePreflight(
       const extraBody = buildExtraBody(backend.inference);
       if (Object.prototype.hasOwnProperty.call(extraBody, "reasoning")) {
         throw new Error(`Judge preflight failed: reasoning is enabled for judge backend ${backend.modelId}`);
-      }
-    }
-    const loaded = hasLmsCli() ? loadLmsModels(ctx.repoRoot) : [];
-    for (const backend of judgePool) {
-      if (isLocalLmStudioBaseUrl(backend.inference.apiBaseUrl) && !loaded.some((entry) => loadedModelMatches(entry, backend.inference.model))) {
-        throw new Error(`Judge preflight failed: configured judge model is not loaded: ${backend.inference.model}`);
       }
     }
 

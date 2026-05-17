@@ -14,6 +14,7 @@ output_mode = "text_binary_label"
 system_prompt = "Judge the advice. Just output the number."
 
 [lifecycle]
+# Legacy no-op section; LM Studio loading is managed outside the runner.
 load_command = ""
 unload_command = ""
 

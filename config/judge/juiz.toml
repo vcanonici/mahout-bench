@@ -12,7 +12,7 @@ output_mode = "json_schema_binary_label"
 system_prompt = "Judge the advice. Just output the number."
 
 [lifecycle]
-# Optional shell commands. Keep empty to skip explicit load/unload.
+# Legacy no-op section; LM Studio loading is managed outside the runner.
 load_command = ""
 unload_command = ""
 

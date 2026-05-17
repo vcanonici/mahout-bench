@@ -45,7 +45,6 @@ import { executeJudgePhase } from "../judging/judgeScoring.js";
 import { ensureDir, appendJsonl, localRunStamp, readCsvFile, utcNowIso, writeJson, writeTextFile } from "../io/filesystem.js";
 import { writeResults } from "../reporting/resultsReport.js";
 import { commonMoralIds, buildSampleManifest, plannedOverallUnits, sampleTargetN, shuffleIds, socialTargetMap } from "../sampling/samplePlanner.js";
-import { assertLocalLmStudioBackendsReadyForSkipLms, loadGenerationPoolModels, unloadAllModels } from "../runtime/lmsLifecycle.js";
 import { defaultPackageRoot, resolveDataRoot } from "../runtime/paths.js";
 import { TerminalObserver, requireInteractiveTty } from "../runtime/terminalObserver.js";
 import { BenchmarkAbort } from "./benchmarkAbort.js";
@@ -81,9 +80,6 @@ export async function runBenchmark(args: BenchmarkArgs): Promise<number> {
   observer.configureRun(ctx.outputRoot);
   observer.start(overallTotal);
   logRunStarted(ctx, args, setup, overallTotal, observer);
-  if (args.skipLms) {
-    assertLocalLmStudioBackendsReadyForSkipLms(ctx, setup.generationPool, setup.judgePool);
-  }
 
   try {
     manifest = await runGenerationIfNeeded(args, ctx, setup, plan, manifest, observer);
@@ -96,7 +92,7 @@ export async function runBenchmark(args: BenchmarkArgs): Promise<number> {
   } catch (error) {
     return handleRunError(ctx, observer, error);
   } finally {
-    unloadFinalModelsIfNeeded(args, ctx, observer);
+    observer.stop();
   }
 }
 
@@ -298,19 +294,9 @@ async function runGenerationIfNeeded(
 ): Promise<SampleManifest | null> {
   if (args.judgeOnly) {
     archiveExistingJudgeArtifacts(ctx, observer);
-    if (!args.skipLms) {
-      await loadGenerationPoolModels(ctx, setup.judgePool, observer, "judge_pool");
-    }
     return manifest;
   }
-  if (!args.skipLms) {
-    await loadGenerationPoolModels(ctx, setup.generationPool, observer);
-  }
   const generationResult = await runGenerationPhase(ctx, setup, plan, observer);
-  if (!args.skipLms) {
-    unloadAllModels(ctx, observer, "glm");
-    await loadGenerationPoolModels(ctx, setup.judgePool, observer, "judge_pool");
-  }
   const generatedManifest = buildSampleManifest({
     ctx,
     referenceProfile: setup.reference,
@@ -390,7 +376,7 @@ async function runFixedProfileGeneration(
 }
 
 async function runJudgeAndReport(
-  args: BenchmarkArgs,
+  _args: BenchmarkArgs,
   ctx: RunContext,
   setup: ReturnType<typeof loadBenchmarkSetup>,
   manifest: SampleManifest | null,
@@ -406,9 +392,6 @@ async function runJudgeAndReport(
     moralB: setup.moralB,
     observer
   });
-  if (!args.skipLms) {
-    unloadAllModels(ctx, observer, "judge");
-  }
   const audit: AuditConsolidated = {
     created_at: utcNowIso(),
     output_root: ctx.outputRoot,
@@ -527,19 +510,6 @@ function handleRunError(ctx: RunContext, observer: TerminalObserver, error: unkn
   observer.stop();
   process.stderr.write(`Autobench failed. Partial artifacts: ${ctx.outputRoot}\n`);
   throw error;
-}
-
-function unloadFinalModelsIfNeeded(args: BenchmarkArgs, ctx: RunContext, observer: TerminalObserver): void {
-  if (args.skipLms) {
-    observer.stop();
-    return;
-  }
-  try {
-    unloadAllModels(ctx, observer, "final");
-  } catch (error) {
-    logEvent(ctx, "final_unload_failed", observer, { error: renderError(error) });
-  }
-  observer.stop();
 }
 
 function buildSelfTestInference(thinkingEnabled: boolean): InferenceConfig {

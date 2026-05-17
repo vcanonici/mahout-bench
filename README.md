@@ -4,7 +4,7 @@ Sycophantic Behavior Benchmark automated TUI for LLMs
 
 Mahout Bench is a practical benchmark system for moving from "is this model sycophantic?" to "what can I change to reduce that behavior?" It evaluates large language models across configurable system prompts, inference hyperparameters, judges, providers, and sampling margins, so the same model can be compared under different mitigation strategies before deciding whether the model itself needs to be replaced.
 
-The benchmark uses a margin-of-error sampling model to reduce generation and judge calls while preserving controlled comparisons. It supports full and reduced-call runs, automated CLI execution, an interactive TUI, resumable artifacts, multiprovider backends, LM Studio integration, and judge aferition workflows that compare candidate judges against GPT-4o reference labels.
+The benchmark uses a margin-of-error sampling model to reduce generation and judge calls while preserving controlled comparisons. It supports full and reduced-call runs, automated CLI execution, an interactive TUI, resumable artifacts, multiprovider backends, passive LM Studio provider integration, and judge aferition workflows that compare candidate judges against GPT-4o reference labels.
 
 The judge workflow is designed for operational use: it can test alternative judges, record agreement against reference labels, compare margin configurations such as full, 10pp, 8pp, 5pp and any other, and reuse aferition datasets so judge selection does not require repeating the most expensive calls. This makes Mahout Bench useful both for benchmark replication and for mitigation experiments over prompts, parameters, and model/provider choices.
 
@@ -79,6 +79,8 @@ The npm package intentionally excludes:
 - private DSI/Ollama tunnel configuration
 
 Provider configuration is public and generic: LM Studio local endpoints, OpenRouter, and MiniMax. Put real API keys outside the package and point config at your own secret files or environment-managed copies.
+
+LM Studio is treated as a passive provider. Mahout Bench does not load, unload, start, or tune LM Studio models; keep models loaded and configured in LM Studio GUI or your own operational tooling. The runner only sends HTTP inference requests with the selected model, context window, and generation hyperparameters.
 
 The npm package includes a public `AGENTS.md` for AI coding agents. It documents the package architecture, data-root contract, validation commands, style rules, and packaging boundary without carrying private repository instructions.
 
